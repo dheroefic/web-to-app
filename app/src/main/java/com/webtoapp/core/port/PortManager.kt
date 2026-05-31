@@ -16,6 +16,12 @@ object PortManager {
 
     private const val STALE_THRESHOLD_MS = 30_000L
 
+    // 无关联进程的分配(如 LocalHttpServer 这种纯 socket server)用更长的阈值:
+    // 它们正常随 stop() 释放,但若宿主异常退出 / onDispose 未触发就会泄漏。purge
+    // 仅在「超过该阈值 且 探活确认端口已空闲(没人在监听)」时才回收,避免误杀仍在
+    // 服务的 server,也避开刚分配尚未 bind 的窗口期。
+    private const val STALE_NO_PROCESS_THRESHOLD_MS = 120_000L
+
     enum class PortRange(val start: Int, val end: Int) {
         LOCAL_HTTP(18000, 18499),
         PHP(18500, 18999),
@@ -179,9 +185,15 @@ object PortManager {
             val now = System.currentTimeMillis()
             for ((port, alloc) in allocatedPorts) {
                 val process = portProcesses[port]
+                if (process != null) {
+                    if (!process.isAliveCompat() && (now - alloc.allocatedAt) > STALE_THRESHOLD_MS) {
+                        stale.add(port)
+                    }
+                } else {
 
-                if (process != null && !process.isAliveCompat() && (now - alloc.allocatedAt) > STALE_THRESHOLD_MS) {
-                    stale.add(port)
+                    if ((now - alloc.allocatedAt) > STALE_NO_PROCESS_THRESHOLD_MS && isPortAvailable(port)) {
+                        stale.add(port)
+                    }
                 }
             }
         }
@@ -190,11 +202,17 @@ object PortManager {
                 stale.forEach { port ->
 
                     val process = portProcesses[port]
-                    if (process != null && !process.isAliveCompat()) {
+                    val alloc = allocatedPorts[port] ?: return@forEach
+                    val recyclable = if (process != null) {
+                        !process.isAliveCompat()
+                    } else {
+
+                        isPortAvailable(port)
+                    }
+                    if (recyclable) {
                         portProcesses.remove(port)
-                        allocatedPorts.remove(port)?.let { alloc ->
-                            AppLogger.w(TAG, "清理僵尸端口 $port (原使用者: ${alloc.owner}, 存活: ${alloc.uptimeMs}ms)")
-                        }
+                        allocatedPorts.remove(port)
+                        AppLogger.w(TAG, "清理僵尸端口 $port (原使用者: ${alloc.owner}, 存活: ${alloc.uptimeMs}ms)")
                     }
                 }
             }
@@ -207,8 +225,15 @@ object PortManager {
         val stale = mutableListOf<Int>()
         for ((port, alloc) in allocatedPorts) {
             val process = portProcesses[port]
-            if (process != null && !process.isAliveCompat() && (now - alloc.allocatedAt) > STALE_THRESHOLD_MS) {
-                stale.add(port)
+            if (process != null) {
+                if (!process.isAliveCompat() && (now - alloc.allocatedAt) > STALE_THRESHOLD_MS) {
+                    stale.add(port)
+                }
+            } else {
+
+                if ((now - alloc.allocatedAt) > STALE_NO_PROCESS_THRESHOLD_MS && isPortAvailable(port)) {
+                    stale.add(port)
+                }
             }
         }
         stale.forEach { port ->

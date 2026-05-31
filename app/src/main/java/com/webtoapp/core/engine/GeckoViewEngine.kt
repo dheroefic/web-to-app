@@ -145,12 +145,25 @@ class GeckoViewEngine(
          * ECH（Encrypted Client Hello）的 Gecko preference 只能在 runtime 创建时通过
          * --pref 参数注入，无法在 runtime 创建后动态切换。ECH 依赖 DoH，因此仅在
          * [com.webtoapp.data.model.DnsConfig.echEffective] 为 true 时注入。
+         *
+         * ECHConfig 公钥存放在 DNS 的 HTTPS(HTTPS RR / SVCB)记录里。Gecko 要拿到它、
+         * 进而加密 SNI，光开 echconfig.enabled 不够，还必须开启 HTTPS RR 的解析与使用：
+         *   - network.dns.echconfig.enabled        : 启用 ECH 本身
+         *   - network.dns.http3_echconfig.enabled  : HTTP/3 上的 ECH
+         *   - network.dns.upgrade_with_https_rr    : 解析并使用 HTTPS RR
+         *   - network.dns.use_https_rr_as_altsvc   : 把 HTTPS RR 当 alt-svc（ECHConfig 经此通道取得）
+         * 缺少后两个,Gecko 取不到 ECHConfig,SNI 仍是明文(用户实测 sni=plaintext 即此因)。
+         *
+         * 验证:用 GeckoView 引擎打开 https://cloudflare.com/cdn-cgi/trace,看 sni=encrypted。
+         * 系统 WebView(Chromium)不暴露 ECH 开关,无法由 app 控制,sni 必为 plaintext。
          */
         private fun buildEchArgs(config: com.webtoapp.data.model.DnsConfig?): List<String> {
             if (config?.echEffective != true) return emptyList()
             return listOf(
                 "--pref=network.dns.echconfig.enabled=true",
-                "--pref=network.dns.http3_echconfig.enabled=true"
+                "--pref=network.dns.http3_echconfig.enabled=true",
+                "--pref=network.dns.upgrade_with_https_rr=true",
+                "--pref=network.dns.use_https_rr_as_altsvc=true"
             )
         }
 
