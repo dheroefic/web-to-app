@@ -4301,6 +4301,9 @@ class WebViewManager(
                 return@launch
             }
             ensureChromeExtensionRuntimesForDeferredModules(webView)
+            if (ensureDesktopUaForDeferredChromeExt(webView)) {
+                return@launch
+            }
             performExtensionModuleInjection(webView, url, runAt)
         }
     }
@@ -4318,6 +4321,26 @@ class WebViewManager(
             )
             initChromeExtensionRuntimes(webView)
         }
+    }
+
+    private fun ensureDesktopUaForDeferredChromeExt(webView: WebView): Boolean {
+        val config = currentConfig ?: return false
+        if (isDesktopUaRequested(config)) return false
+        if (resolveUserAgent(config) != null) return false
+        val hasActiveChromeExt = getActiveModulesForCurrentApp().any { module ->
+            module.sourceType == com.webtoapp.core.extension.ModuleSourceType.CHROME_EXTENSION &&
+                module.chromeExtId.isNotEmpty()
+        }
+        if (!hasActiveChromeExt) return false
+        val desktopUa = DESKTOP_USER_AGENT ?: DESKTOP_USER_AGENT_FALLBACK
+        if (webView.settings.userAgentString == desktopUa) return false
+        webView.settings.userAgentString = desktopUa
+        AppLogger.d(
+            "WebViewManager",
+            "Desktop UA auto-enabled (deferred) for active Chrome extension(s); reloading"
+        )
+        webView.reload()
+        return true
     }
 
     private fun cancelDeferredExtensionModuleInjection(webView: WebView) {
