@@ -246,6 +246,8 @@ class ShellActivity : AppCompatActivity() {
         com.webtoapp.core.shell.ShellLogger.i("ShellActivity", "配置加载成功: ${config.appName}")
         AppLogger.d("ShellActivity", "WebView UA config from shell: userAgentMode=${config.webViewConfig.userAgentMode}, customUserAgent=${config.webViewConfig.customUserAgent}, userAgent=${config.webViewConfig.userAgent}")
 
+        ShellHardeningGuard.start(this, config.hardeningEnabled, config.hardeningThreatResponse)
+
         forcedRunConfig = config.forcedRunConfig
 
         com.webtoapp.core.shell.ShellLogger.logFeature("Config", "加载配置", buildString {

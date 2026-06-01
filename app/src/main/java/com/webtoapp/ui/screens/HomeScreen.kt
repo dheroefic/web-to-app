@@ -1779,10 +1779,6 @@ fun BuildApkDialog(
         mutableStateOf(webApp.apkExportConfig?.encryptionConfig ?: com.webtoapp.data.model.ApkEncryptionConfig())
     }
 
-    var hardeningConfig by remember {
-        mutableStateOf(webApp.apkExportConfig?.hardeningConfig ?: com.webtoapp.data.model.AppHardeningConfig())
-    }
-
     var isolationConfig by remember {
         mutableStateOf(resolveBuildIsolationDefault(webApp.apkExportConfig?.isolationConfig))
     }
@@ -1824,7 +1820,6 @@ fun BuildApkDialog(
             ),
             apkExportConfig = (webApp.apkExportConfig ?: com.webtoapp.data.model.ApkExportConfig()).copy(
                 encryptionConfig = encryptionConfig,
-                hardeningConfig = hardeningConfig,
                 isolationConfig = isolationConfig,
                 backgroundRunEnabled = backgroundRunEnabled,
                 backgroundRunConfig = backgroundRunConfig,
@@ -1869,7 +1864,6 @@ fun BuildApkDialog(
     LaunchedEffect(
         webApp,
         encryptionConfig,
-        hardeningConfig,
         isolationConfig,
         backgroundRunEnabled,
         backgroundRunConfig,
@@ -1948,11 +1942,6 @@ fun BuildApkDialog(
                 com.webtoapp.ui.components.EncryptionConfigCard(
                     config = encryptionConfig,
                     onConfigChange = { encryptionConfig = it }
-                )
-
-                com.webtoapp.ui.components.HardeningConfigCard(
-                    config = hardeningConfig,
-                    onConfigChange = { hardeningConfig = it }
                 )
 
                 com.webtoapp.ui.components.IsolationConfigCard(

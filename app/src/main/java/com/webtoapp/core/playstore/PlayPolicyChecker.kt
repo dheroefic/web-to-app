@@ -70,18 +70,6 @@ object PlayPolicyChecker {
             )
         }
 
-        if (webApp.apkExportConfig?.hardeningConfig?.enabled == true) {
-            violations.add(
-                Violation(
-                    ruleId = "APP_HARDENING_ENABLED",
-                    severity = Severity.BLOCKER,
-                    featurePath = "rule.hardening.path",
-                    policyArea = "rule.hardening.area",
-                    fixHint = "rule.hardening.fix"
-                )
-            )
-        }
-
         if (webApp.apkExportConfig?.encryptionConfig?.enabled == true) {
             violations.add(
                 Violation(
@@ -269,9 +257,6 @@ object PlayPolicyChecker {
             )
             "ICON_STORM_ENABLED" -> ResolvedViolation(
                 v.severity, s.rulePathIconStorm, s.ruleAreaIconStorm, s.ruleFixIconStorm
-            )
-            "APP_HARDENING_ENABLED" -> ResolvedViolation(
-                v.severity, s.rulePathHardening, s.ruleAreaHardening, s.ruleFixHardening
             )
             "APK_ENCRYPTION_ENABLED" -> ResolvedViolation(
                 v.severity, s.rulePathApkEncryption, s.ruleAreaApkEncryption, s.ruleFixApkEncryption

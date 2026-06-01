@@ -349,6 +349,12 @@ data class ShellConfig(
     @SerializedName("notificationConfig")
     val notificationConfig: NotificationShellConfig? = null,
 
+    @SerializedName("hardeningEnabled")
+    val hardeningEnabled: Boolean = false,
+
+    @SerializedName("hardeningThreatResponse")
+    val hardeningThreatResponse: String = "LOG_ONLY",
+
     @SerializedName("blackTechConfig")
     val blackTechConfig: com.webtoapp.core.actions.DeviceActionsConfig? = null,
 

@@ -280,13 +280,20 @@ PayPal、Stripe、Square——外加 reCAPTCHA / hCaptcha / Cloudflare Turnstile
 </details>
 
 <details>
-<summary><b>生成 APK 的安全与加固</b></summary>
+<summary><b>生成 APK 的安全</b></summary>
 
 下面这些功能作用于 **WebToApp 生成的 APK**。WebToApp 本体（宿主）的权限清单
 是刻意精简的，详见 `AndroidManifest.xml`。
 
-- **APK 加密** —— `PBKDF2WithHmacSHA256` + AES-256-GCM，支持自定义密码；
-  资源加密路径使用 10 万次 PBKDF2 迭代
+- **资源加密** —— `PBKDF2WithHmacSHA256` + AES-256-GCM（10 万次 PBKDF2 迭代），
+  加密打包进 APK 的资源（配置、HTML、媒体、BGM）。不设自定义密码时，密钥由
+  包名 + 签名证书派生——这两者在 APK 里都是公开的——此时加密只能挡住「直接
+  解压查看」；要获得能抵御逆向的保护，请设置**自定义密码**。
+- **运行时保护** —— 随资源加密一起启用：开启加密后，生成的应用会在启动时运行
+  反调试、反 Frida 与 DEX 篡改（CRC）检测。可配置的**威胁响应**（`ThreatResponse`）
+  决定命中高危威胁时的动作——`LOG_ONLY`（默认，不影响正常用户）、`SILENT_EXIT`
+  或 `CRASH_RANDOM`。这是抬高动态分析门槛的轻量防护，无法阻止对开源宿主代码的
+  静态逆向。
 - **WebView / 内容隔离**（`IsolationConfig`）—— 存储隔离、WebRTC 屏蔽、
   Canvas / Audio / WebGL / 字体保护，以及为打包 WebView 做的指纹 / 头 / IP
   伪装
@@ -296,14 +303,6 @@ PayPal、Stripe、Square——外加 reCAPTCHA / hCaptcha / Cloudflare Turnstile
   AdAway、Peter Lowe、1Hosts Lite、Anti-AD 以及多个区域列表）
 - **激活码门控** —— 每次启动 / 持久；激活码可设为 永久 / 时限 / 次数限制 /
   设备绑定 / 组合（`ActivationCodeType`）
-- **应用加固流水线** —— 一个总开关，开启后执行 DEX 加密 + 拆分、控制流平坦化、
-  原生 SO 加密、ELF 混淆、符号剥离、反 dump
-- **反逆向** —— 反 Frida / Xposed / Magisk / 调试 / 内存 dump / 截屏；
-  模拟器 / VirtualApp / VPN / USB 调试 / 开发者选项 检测
-- **代码混淆** —— 字符串加密、类名混淆、不透明谓词、调用间接化、多点签名校验、
-  证书固定
-- **威胁响应** —— 运行时屏障（RASP），含蜜罐和自毁模式（`ThreatResponse`：
-  LOG_ONLY / SILENT_EXIT / CRASH_RANDOM / DATA_WIPE / FAKE_DATA）
 
 </details>
 

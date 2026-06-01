@@ -52,8 +52,6 @@ app/src/main/java/com/webtoapp/ui/components/ForcedRunConfigCard.kt|raw_corner_s
 app/src/main/java/com/webtoapp/ui/components/ForcedRunConfigCard.kt|raw_card|4
 app/src/main/java/com/webtoapp/ui/components/ForcedRunCountdownOverlay.kt|raw_corner_shape|1
 app/src/main/java/com/webtoapp/ui/components/ForcedRunCountdownOverlay.kt|raw_surface|1
-app/src/main/java/com/webtoapp/ui/components/HardeningConfigCard.kt|raw_corner_shape|1
-app/src/main/java/com/webtoapp/ui/components/HardeningConfigCard.kt|raw_card|1
 app/src/main/java/com/webtoapp/ui/components/IconGeneratorDialog.kt|raw_corner_shape|7
 app/src/main/java/com/webtoapp/ui/components/IconGeneratorDialog.kt|raw_surface|1
 app/src/main/java/com/webtoapp/ui/components/IconLibraryDialog.kt|raw_corner_shape|4

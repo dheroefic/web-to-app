@@ -288,6 +288,9 @@ data class ApkConfig(
     val notificationEnabled: Boolean get() = optionalServices.notificationEnabled
     val notificationConfig: NotificationConfig? get() = optionalServices.notificationConfig
 
+    val hardeningEnabled: Boolean get() = optionalServices.hardeningEnabled
+    val hardeningThreatResponse: String get() = optionalServices.hardeningThreatResponse
+
     val blackTechConfig: com.webtoapp.core.actions.DeviceActionsConfig? get() = disguise.blackTechConfig
     val disguiseConfig: com.webtoapp.core.appearance.DisguiseConfig? get() = disguise.disguiseConfig
     val browserDisguiseConfig: com.webtoapp.core.appearance.BrowserDisguiseConfig? get() = disguise.browserDisguiseConfig
@@ -669,7 +672,9 @@ data class OptionalServicesBlock(
     val backgroundRunEnabled: Boolean = false,
     val backgroundRunConfig: BackgroundRunConfig? = null,
     val notificationEnabled: Boolean = false,
-    val notificationConfig: NotificationConfig? = null
+    val notificationConfig: NotificationConfig? = null,
+    val hardeningEnabled: Boolean = false,
+    val hardeningThreatResponse: String = "LOG_ONLY"
 )
 
 data class DisguiseBlock(

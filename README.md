@@ -314,13 +314,24 @@ Chrome Custom Tab with shared cookies (via `androidx.browser`).
 </details>
 
 <details>
-<summary><b>Generated-APK security &amp; hardening</b></summary>
+<summary><b>Generated-APK security</b></summary>
 
 The features below apply to the apps **WebToApp generates**. The host
 itself ships with a minimal permission set (see `AndroidManifest.xml`).
 
-- **APK encryption** — `PBKDF2WithHmacSHA256` + AES-256-GCM, with custom
-  passwords. The asset-encryption path uses 100 000 PBKDF2 iterations.
+- **Resource encryption** — `PBKDF2WithHmacSHA256` + AES-256-GCM (100 000
+  PBKDF2 iterations) encrypts the packaged assets (config, HTML, media, BGM).
+  With no custom password the key is derived from the package name and signing
+  certificate — both public in the APK — so encryption then only deters casual
+  extraction; set a **custom password** for protection that survives
+  reverse-engineering of the host.
+- **Runtime protection** — bundled with resource encryption: when encryption
+  is on, the generated app runs anti-debug, anti-Frida and DEX-tamper (CRC)
+  checks at launch. A configurable **threat response** (`ThreatResponse`)
+  decides what happens on a high-risk hit — `LOG_ONLY` (default, never affects
+  normal users), `SILENT_EXIT`, or `CRASH_RANDOM`. This is lightweight
+  protection that raises the bar for dynamic analysis; it cannot stop static
+  reverse-engineering of the open-source host code.
 - **WebView / content isolation** (`IsolationConfig`) — storage isolation,
   WebRTC blocking, Canvas / Audio / WebGL / font protection, and
   fingerprint / header / IP spoofing for the packaged WebView.
@@ -332,18 +343,6 @@ itself ships with a minimal permission set (see `AndroidManifest.xml`).
 - **Activation code gating** — per-launch or persistent; codes can be
   permanent, time-limited, usage-limited, device-bound, or combined
   (`ActivationCodeType`).
-- **App hardening pipeline** — a single on/off toggle that runs DEX
-  encryption + splitting, control-flow flattening, native SO encryption, ELF
-  obfuscation, symbol strip, and anti-dump.
-- **Anti-reverse engineering** — anti-Frida / Xposed / Magisk / debug /
-  memory dump / screen capture; emulator / VirtualApp / VPN / USB-debugging /
-  developer-options detection.
-- **Code obfuscation** — string encryption, class name mangling, opaque
-  predicates, call indirection, multi-point signature verification,
-  certificate pinning.
-- **Threat response** — a runtime shield (RASP) with honeypot and
-  self-destruct modes (`ThreatResponse`: LOG_ONLY / SILENT_EXIT /
-  CRASH_RANDOM / DATA_WIPE / FAKE_DATA).
 
 </details>
 

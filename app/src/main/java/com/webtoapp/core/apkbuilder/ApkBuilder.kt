@@ -115,8 +115,8 @@ class ApkBuilder(private val context: Context) {
             val encryptionConfig = webApp.apkExportConfig?.encryptionConfig?.toEncryptionConfig()
                 ?: EncryptionConfig.DISABLED
 
-            val hardeningConfig = webApp.apkExportConfig?.hardeningConfig
-                ?: com.webtoapp.data.model.AppHardeningConfig()
+            val encryptionExportConfig = webApp.apkExportConfig?.encryptionConfig
+                ?: com.webtoapp.data.model.ApkEncryptionConfig()
 
             val perfOptEnabled = webApp.apkExportConfig?.performanceOptimization == true
             val perfConfig = if (perfOptEnabled) {
@@ -135,7 +135,7 @@ class ApkBuilder(private val context: Context) {
             logger.logKeyValue("adBlockEnabled", webApp.adBlockEnabled)
             logger.logKeyValue("translateEnabled", webApp.translateEnabled)
             logger.logKeyValue("encryptionEnabled", encryptionConfig.enabled)
-            logger.logKeyValue("hardeningEnabled", hardeningConfig.enabled)
+            logger.logKeyValue("runtimeProtectionResponse", encryptionExportConfig.threatResponse.name)
 
             logger.logKeyValue("performanceOptimization", perfOptEnabled)
 
@@ -472,7 +472,6 @@ class ApkBuilder(private val context: Context) {
                 webApp.getSplashMediaPath(), mediaContentPath,
                 bgmPlaylistPaths, bgmLrcDataList, htmlFiles, galleryItems,
                 encryptionConfig, encryptionKey,
-                hardeningConfig,
                 architecture.abiFilters,
                 wordPressProjectDir,
                 nodejsProjectDir,
@@ -728,7 +727,6 @@ class ApkBuilder(private val context: Context) {
         galleryItems: List<com.webtoapp.data.model.GalleryItem> = emptyList(),
         encryptionConfig: EncryptionConfig = EncryptionConfig.DISABLED,
         encryptionKey: SecretKey? = null,
-        hardeningConfig: com.webtoapp.data.model.AppHardeningConfig = com.webtoapp.data.model.AppHardeningConfig(),
         abiFilters: List<String> = emptyList(),
         wordPressProjectDir: File? = null,
         nodejsProjectDir: File? = null,
@@ -894,30 +892,10 @@ class ApkBuilder(private val context: Context) {
                     logger.log("Encryption metadata written")
                 }
 
-                if (hardeningConfig.enabled) {
-                    onProgress(78, "Applying hardening...")
-                    logger.section("App Hardening")
-                    logger.log("Hardening: maximum protection enabled")
-                    val hardeningEngine = com.webtoapp.core.protection.AppHardeningEngine(context)
-                    val signatureHash = signer.getCertificateSignatureHash()
-                    val hardeningResult = hardeningEngine.performHardening(
-                        config = hardeningConfig,
-                        zipOut = zipOut,
-                        packageName = config.packageName,
-                        signatureHash = signatureHash
-                    ) { _, hardenText ->
-                        logger.log("Hardening: $hardenText")
-                    }
-                    logger.logKeyValue("hardeningSuccess", hardeningResult.success)
-                    logger.logKeyValue("protectionLayers", hardeningResult.stats.totalProtectionLayers)
-                    logger.logKeyValue("hardeningTimeMs", hardeningResult.stats.hardeningTimeMs)
-                    if (hardeningResult.warnings.isNotEmpty()) {
-                        hardeningResult.warnings.forEach { logger.warn("Hardening: $it") }
-                    }
-                    if (hardeningResult.errors.isNotEmpty()) {
-                        hardeningResult.errors.forEach { logger.error("Hardening: $it") }
-                    }
-                    logger.log("App hardening completed: ${hardeningResult.protectedFeatures.size} features protected")
+                if (encryptionConfig.enabled) {
+                    onProgress(78, "Applying runtime protection...")
+                    logger.section("Runtime Protection")
+                    logger.log("Resource encryption enabled: shell enforces runtime protection (anti-debug / anti-Frida / DEX-tamper) at launch via app_config.json")
                 }
 
                 if (perfConfig != null && perfConfig.injectPerformanceScript) {
@@ -3248,7 +3226,10 @@ private fun WebApp.buildOptionalServicesBlock(): OptionalServicesBlock = Optiona
             pollHeaders = it.pollHeaders,
             clickUrl = it.clickUrl
         )
-    }
+    },
+    hardeningEnabled = apkExportConfig?.encryptionConfig?.enabled ?: false,
+    hardeningThreatResponse = (apkExportConfig?.encryptionConfig?.threatResponse
+        ?: com.webtoapp.data.model.ApkEncryptionConfig.ThreatResponse.LOG_ONLY).name
 )
 
 private fun WebApp.buildDisguiseBlock(): DisguiseBlock = DisguiseBlock(

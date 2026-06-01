@@ -95,6 +95,8 @@ internal object ApkConfigJsonFactory {
         "backgroundRunConfig" to backgroundRunConfigPayload(),
         "notificationEnabled" to optionalServices.notificationEnabled,
         "notificationConfig" to notificationConfigPayload(),
+        "hardeningEnabled" to optionalServices.hardeningEnabled,
+        "hardeningThreatResponse" to optionalServices.hardeningThreatResponse,
         "blackTechConfig" to disguise.blackTechConfig,
         "disguiseConfig" to disguise.disguiseConfig,
         "browserDisguiseConfig" to disguise.browserDisguiseConfig,

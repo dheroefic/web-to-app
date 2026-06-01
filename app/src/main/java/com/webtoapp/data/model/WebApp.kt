@@ -963,7 +963,6 @@ data class ApkExportConfig(
     val runtimePermissions: ApkRuntimePermissions = ApkRuntimePermissions(),
     val networkTrustConfig: NetworkTrustConfig = NetworkTrustConfig(),
     val encryptionConfig: ApkEncryptionConfig = ApkEncryptionConfig(),
-    val hardeningConfig: AppHardeningConfig = AppHardeningConfig(),
     val isolationConfig: com.webtoapp.core.privacy.IsolationConfig = com.webtoapp.core.privacy.IsolationConfig(),
     val backgroundRunEnabled: Boolean = false,
     val backgroundRunConfig: BackgroundRunExportConfig = BackgroundRunExportConfig(),
@@ -1084,8 +1083,25 @@ data class BackgroundRunExportConfig(
 
 data class ApkEncryptionConfig(
     val enabled: Boolean = false,
-    val customPassword: String? = null
+    val customPassword: String? = null,
+    val threatResponse: ThreatResponse = ThreatResponse.LOG_ONLY
 ) {
+    enum class ThreatResponse {
+        LOG_ONLY,
+        SILENT_EXIT,
+        CRASH_RANDOM,
+        DATA_WIPE,
+        FAKE_DATA;
+
+        val displayName: String get() = when (this) {
+            LOG_ONLY -> com.webtoapp.core.i18n.Strings.threatResponseLogOnly
+            SILENT_EXIT -> com.webtoapp.core.i18n.Strings.threatResponseSilentExit
+            CRASH_RANDOM -> com.webtoapp.core.i18n.Strings.threatResponseCrashRandom
+            DATA_WIPE -> com.webtoapp.core.i18n.Strings.threatResponseDataWipe
+            FAKE_DATA -> com.webtoapp.core.i18n.Strings.threatResponseFakeData
+        }
+    }
+
     companion object {
         val DISABLED = ApkEncryptionConfig(enabled = false)
     }
@@ -1148,31 +1164,6 @@ data class ActivationDialogConfig(
     val inputLabel: String = "",
     val buttonText: String = ""
 )
-
-data class AppHardeningConfig(
-    val enabled: Boolean = false
-) {
-    enum class ThreatResponse {
-        LOG_ONLY,
-        SILENT_EXIT,
-        CRASH_RANDOM,
-        DATA_WIPE,
-        FAKE_DATA;
-
-        val displayName: String get() = when (this) {
-            LOG_ONLY -> com.webtoapp.core.i18n.Strings.threatResponseLogOnly
-            SILENT_EXIT -> com.webtoapp.core.i18n.Strings.threatResponseSilentExit
-            CRASH_RANDOM -> com.webtoapp.core.i18n.Strings.threatResponseCrashRandom
-            DATA_WIPE -> com.webtoapp.core.i18n.Strings.threatResponseDataWipe
-            FAKE_DATA -> com.webtoapp.core.i18n.Strings.threatResponseFakeData
-        }
-    }
-
-    companion object {
-        val DISABLED = AppHardeningConfig(enabled = false)
-        val ENABLED = AppHardeningConfig(enabled = true)
-    }
-}
 
 data class AutoStartConfig(
     val bootStartEnabled: Boolean = false,
