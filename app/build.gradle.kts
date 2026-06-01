@@ -87,7 +87,24 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName(if (hasReleaseSigningConfig) "release" else "debug")
+            signingConfig = if (hasReleaseSigningConfig) {
+                signingConfigs.getByName("release")
+            } else {
+                val allowDebugSigned = (project.findProperty("allowDebugSignedRelease") as? String) == "true"
+                if (allowDebugSigned) {
+
+                    signingConfigs.getByName("debug")
+                } else {
+                    throw GradleException(
+                        "Release build has no valid signing config. Configure signing.storeFile / " +
+                            "signing.storePassword / signing.keyAlias / signing.keyPassword in local.properties " +
+                            "before assembling a release APK for distribution. Refusing to silently sign with " +
+                            "the debug key — a debug-signed release breaks upgrades for existing users " +
+                            "('signatures do not match'). For a throwaway debug-signed build (e.g. CI smoke " +
+                            "build, never distribute it), pass -PallowDebugSignedRelease=true."
+                    )
+                }
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

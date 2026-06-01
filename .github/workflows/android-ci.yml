@@ -59,6 +59,7 @@ jobs:
         run: |
           ./gradlew --no-daemon --no-configuration-cache \
             -Dkotlin.compiler.execution.strategy=in-process \
+            -PallowDebugSignedRelease=true \
             :app:assembleDebug \
             :app:assembleRelease \
             :shell:assembleDebug \
@@ -67,7 +68,7 @@ jobs:
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apks-${{ github.run_number }}
+          name: android-apks-DEBUG-SIGNED-do-not-distribute-${{ github.run_number }}
           path: |
             app/build/outputs/apk/**/*.apk
             shell/build/outputs/apk/**/*.apk
