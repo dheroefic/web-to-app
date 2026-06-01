@@ -53,6 +53,7 @@ class WebViewManager(
     private var extensionPanelInjected = false
     private val privateNetworkScriptHandlers = java.util.WeakHashMap<WebView, ScriptHandler>()
     private val downloadBridgeScriptHandlers = java.util.WeakHashMap<WebView, ScriptHandler>()
+    private val blobCacheHookHandlers = java.util.WeakHashMap<WebView, ScriptHandler>()
 
     companion object {
 
@@ -1350,9 +1351,28 @@ class WebViewManager(
                 allowFileAccessFromFileURLs = config.allowFileAccessFromFileURLs
                 allowUniversalAccessFromFileURLs = config.allowUniversalAccessFromFileURLs
 
-                if (config.followSystemDarkMode && WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
-                    WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, true)
-                    AppLogger.d("WebViewManager", "Algorithmic darkening allowed (follow system dark mode)")
+                if (config.followSystemDarkMode) {
+                    val systemInDarkMode = (context.resources.configuration.uiMode and
+                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                        android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+                        @Suppress("DEPRECATION")
+                        WebSettingsCompat.setForceDark(
+                            this,
+                            if (systemInDarkMode) WebSettingsCompat.FORCE_DARK_ON else WebSettingsCompat.FORCE_DARK_OFF
+                        )
+                        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+                            @Suppress("DEPRECATION")
+                            WebSettingsCompat.setForceDarkStrategy(
+                                this,
+                                WebSettingsCompat.DARK_STRATEGY_PREFER_WEB_THEME_OVER_USER_AGENT_DARKENING
+                            )
+                        }
+                        AppLogger.d("WebViewManager", "Follow system dark mode: FORCE_DARK ${if (systemInDarkMode) "ON" else "OFF"}")
+                    } else if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
+                        WebSettingsCompat.setAlgorithmicDarkeningAllowed(this, true)
+                        AppLogger.d("WebViewManager", "Follow system dark mode: algorithmic darkening allowed")
+                    }
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -1395,6 +1415,8 @@ class WebViewManager(
 
                 if (config.enableBlobDownloadInterception) {
                     installDownloadBridgeDocumentStart(this)
+                } else {
+                    installBlobCacheHookDocumentStart(this)
                 }
             }
 
@@ -2989,6 +3011,10 @@ class WebViewManager(
             runCatching { handler.remove() }
         }
         downloadBridgeScriptHandlers.clear()
+        blobCacheHookHandlers.values.toList().forEach { handler ->
+            runCatching { handler.remove() }
+        }
+        blobCacheHookHandlers.clear()
         managedWebViews.keys.toList().forEach { webView ->
             destroyWebView(webView)
         }
@@ -3054,6 +3080,37 @@ class WebViewManager(
             AppLogger.w("WebViewManager", "[DownloadBridge] Document-start install failed, will use onPageStarted fallback", e)
         }
     }
+
+    private fun installBlobCacheHookDocumentStart(webView: WebView) {
+        if (blobCacheHookHandlers.containsKey(webView)) return
+        if (downloadBridgeScriptHandlers.containsKey(webView)) return
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            AppLogger.i("WebViewManager", "[BlobCacheHook] Document-start script unsupported; will use onPageStarted/onPageFinished fallback")
+            return
+        }
+        try {
+            blobCacheHookHandlers[webView] = WebViewCompat.addDocumentStartJavaScript(
+                webView,
+                DownloadBridge.getBlobCacheHookScript(),
+                setOf("*")
+            )
+            AppLogger.i("WebViewManager", "[BlobCacheHook] Installed at document start (applies to all hosts)")
+        } catch (e: Exception) {
+            AppLogger.w("WebViewManager", "[BlobCacheHook] Document-start install failed, will use fallback", e)
+        }
+    }
+
+    private fun injectBlobCacheHookScript(webView: WebView) {
+        if (currentConfig?.downloadEnabled != true) return
+        if (currentConfig?.enableBlobDownloadInterception == true) return
+        try {
+            webView.evaluateJavascript(DownloadBridge.getBlobCacheHookScript(), null)
+        } catch (e: Exception) {
+            AppLogger.w("WebViewManager", "Blob cache hook injection failed", e)
+        }
+    }
+
+
 
     private fun injectPrivateNetworkApiBridgeFallback(webView: WebView, pageUrl: String?) {
         if (!isLocalRuntimeUrl(pageUrl ?: webView.url)) return
@@ -3154,6 +3211,9 @@ class WebViewManager(
                 injectDownloadBridgeScript(webView)
             } else if (minimizeLocalRuntimeInjection) {
                 AppLogger.d("WebViewManager", "Skip download bridge for local runtime page: $url")
+            }
+            if (currentConfig?.downloadEnabled == true && currentConfig?.enableBlobDownloadInterception != true) {
+                injectBlobCacheHookScript(webView)
             }
             if (!scriptlessMode && !minimizeLocalRuntimeInjection) {
                 injectExtensionPanelScript(webView)

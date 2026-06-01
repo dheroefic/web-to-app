@@ -39,6 +39,29 @@ class DownloadBridge(
 
         private val UNSAFE_FILENAME_CHARS_REGEX = Regex("[/\\\\:*?\"<>|]")
 
+        private const val BLOB_CACHE_HOOK_JS = """
+            (function() {
+                if (window._wtaBlobCacheHooked) return;
+                window._wtaBlobCacheHooked = true;
+                const blobUrlMap = window.__wtaBlobMap || (window.__wtaBlobMap = new Map());
+                const originalCreateObjectURL = URL.createObjectURL.bind(URL);
+                const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+                URL.createObjectURL = function(blob) {
+                    const url = originalCreateObjectURL(blob);
+                    if (blob instanceof Blob) {
+                        blobUrlMap.set(url, blob);
+                    }
+                    return url;
+                };
+                URL.revokeObjectURL = function(url) {
+                    setTimeout(function() { blobUrlMap.delete(url); }, 30000);
+                    return originalRevokeObjectURL(url);
+                };
+            })();
+        """
+
+        fun getBlobCacheHookScript(): String = BLOB_CACHE_HOOK_JS
+
         fun getInjectionScript(): String {
 
             val msgPreparingDownload = Strings.preparingDownload
@@ -58,33 +81,15 @@ class DownloadBridge(
 
                 // Save原始方法
                 const originalCreateElement = document.createElement.bind(document);
-                const originalCreateObjectURL = URL.createObjectURL.bind(URL);
-                const originalRevokeObjectURL = URL.revokeObjectURL.bind(URL);
+
+                // Blob URL 缓存 hook（与 document-start 轻量 hook 共用同一实现与 __wtaBlobMap）
+                ${getBlobCacheHookScript()}
 
                 // Blob URL 映射表 - 暴露到 window 以便原生回调注入的 JS 也能查到
                 // 页面内的 JS 常在 a.click() 之后立刻调用 URL.revokeObjectURL，
                 // 等原生 onDownloadStart 回调再注入 fetch(blobUrl) 时 URL 早已失效，
                 // 所以必须依赖这份缓存直接拿 Blob 对象（Blob 有引用就一直活着，不受 URL 撤销影响）
                 const blobUrlMap = window.__wtaBlobMap || (window.__wtaBlobMap = new Map());
-
-                // 拦截 URL.createObjectURL
-                URL.createObjectURL = function(blob) {
-                    const url = originalCreateObjectURL(blob);
-                    if (blob instanceof Blob) {
-                        blobUrlMap.set(url, blob);
-                        console.log('[DownloadBridge] Blob URL created:', url, 'type:', blob.type, 'size:', blob.size);
-                    }
-                    return url;
-                };
-
-                // 拦截 URL.revokeObjectURL - 延迟 30 秒再从缓存移除
-                // 这样即使页面同步 revoke 了，原生回调链路兜一圈后仍能取到 Blob
-                URL.revokeObjectURL = function(url) {
-                    setTimeout(() => {
-                        blobUrlMap.delete(url);
-                    }, 30000);
-                    return originalRevokeObjectURL(url);
-                };
 
                 // 拦截 document.createElement，监控 <a> 标签的创建和点击
                 document.createElement = function(tagName) {
