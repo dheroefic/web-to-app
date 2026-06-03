@@ -307,7 +307,11 @@ PayPal、Stripe、Square——外加 reCAPTCHA / hCaptcha / Cloudflare Turnstile
   个社区过滤源（EasyList、EasyPrivacy、uBlock、AdGuard 系列、StevenBlack、
   AdAway、Peter Lowe、1Hosts Lite、Anti-AD 以及多个区域列表）
 - **激活码门控** —— 每次启动 / 持久；激活码可设为 永久 / 时限 / 次数限制 /
-  设备绑定 / 组合（`ActivationCodeType`）
+  设备绑定 / 组合（`ActivationCodeType`）。默认在本地校验，也可改为对接**你自己的
+  HTTPS 接口**（`RemoteActivationConfig`），从而无需重新打包即可吊销、动态发码——
+  服务器响应由你掌握的 EC P-256 公钥验签，并可配置离线策略。在线校验仍在客户端运行，
+  只是抬高门槛，无法阻止有决心的绕过。服务端接口契约与参考实现见
+  [`docs/remote-activation.md`](docs/remote-activation.md)。
 
 </details>
 

@@ -2847,7 +2847,11 @@ private fun WebApp.buildActivationBlock(): ActivationBlock = ActivationBlock(
     dialogTitle = activationDialogConfig?.title ?: "",
     dialogSubtitle = activationDialogConfig?.subtitle ?: "",
     dialogInputLabel = activationDialogConfig?.inputLabel ?: "",
-    dialogButtonText = activationDialogConfig?.buttonText ?: ""
+    dialogButtonText = activationDialogConfig?.buttonText ?: "",
+    remoteEnabled = activationRemoteConfig?.enabled ?: false,
+    remoteVerifyUrl = activationRemoteConfig?.verifyUrl ?: "",
+    remotePublicKey = activationRemoteConfig?.publicKeyBase64 ?: "",
+    remoteOfflinePolicy = activationRemoteConfig?.offlinePolicy?.name ?: "ALLOW_CACHED"
 )
 
 private fun WebApp.buildAdBlockBlock(): AdBlockBlock = AdBlockBlock(
@@ -2929,6 +2933,11 @@ private fun WebApp.buildWebViewBlock(context: android.content.Context?): WebView
         customUserAgent = webViewConfig.customUserAgent,
         hideToolbar = webViewConfig.hideToolbar,
         hideBrowserToolbar = webViewConfig.hideBrowserToolbar,
+        toolbarShowTitle = webViewConfig.toolbarShowTitle,
+        toolbarShowUrl = webViewConfig.toolbarShowUrl,
+        toolbarShowBack = webViewConfig.toolbarShowBack,
+        toolbarShowForward = webViewConfig.toolbarShowForward,
+        toolbarShowRefresh = webViewConfig.toolbarShowRefresh,
         showStatusBarInFullscreen = webViewConfig.showStatusBarInFullscreen,
         showNavigationBarInFullscreen = webViewConfig.showNavigationBarInFullscreen,
         showToolbarInFullscreen = webViewConfig.showToolbarInFullscreen,

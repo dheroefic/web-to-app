@@ -6155,6 +6155,97 @@ object Strings {
         AppLanguage.ARABIC -> "رمز تفعيل غير صالح"
     }
 
+    val remoteActivationTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "在线验证"
+        AppLanguage.ENGLISH -> "Online Verification"
+        AppLanguage.ARABIC -> "التحقق عبر الإنترنت"
+    }
+
+    val remoteActivationHint: String get() = when (lang) {
+        AppLanguage.CHINESE -> "激活码由你自己的服务器验证，可随时吊销、动态发码、集中控制次数。验证逻辑仍在客户端，决心足够的人仍可绕过——这是抬高门槛，不是防破解。"
+        AppLanguage.ENGLISH -> "Activation codes are verified by your own server, so you can revoke them, issue them dynamically, and control usage centrally. Verification still runs on the client and a determined attacker can still bypass it — this raises the bar, it is not anti-cracking."
+        AppLanguage.ARABIC -> "يتم التحقق من رموز التفعيل بواسطة خادمك الخاص، مما يتيح لك إبطالها وإصدارها ديناميكيًا والتحكم في الاستخدام مركزيًا. لا يزال التحقق يعمل على العميل ويمكن لمهاجم مصمم تجاوزه — هذا يرفع الحاجز وليس حماية ضد الكسر."
+    }
+
+    val remoteActivationUrlLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "验证接口地址（必须 HTTPS）"
+        AppLanguage.ENGLISH -> "Verification endpoint (must be HTTPS)"
+        AppLanguage.ARABIC -> "نقطة نهاية التحقق (يجب أن تكون HTTPS)"
+    }
+
+    val remoteActivationPublicKeyLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "验签公钥（EC P-256，Base64）"
+        AppLanguage.ENGLISH -> "Signature public key (EC P-256, Base64)"
+        AppLanguage.ARABIC -> "مفتاح التوقيع العام (EC P-256، Base64)"
+    }
+
+    val remoteActivationOfflineLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "离线策略"
+        AppLanguage.ENGLISH -> "Offline policy"
+        AppLanguage.ARABIC -> "سياسة عدم الاتصال"
+    }
+
+    val remoteActivationOfflineAllowCached: String get() = when (lang) {
+        AppLanguage.CHINESE -> "允许使用上次成功结果（推荐）"
+        AppLanguage.ENGLISH -> "Allow last successful result (recommended)"
+        AppLanguage.ARABIC -> "السماح بآخر نتيجة ناجحة (موصى به)"
+    }
+
+    val remoteActivationOfflineDeny: String get() = when (lang) {
+        AppLanguage.CHINESE -> "无网络时拒绝进入"
+        AppLanguage.ENGLISH -> "Deny when offline"
+        AppLanguage.ARABIC -> "الرفض عند عدم الاتصال"
+    }
+
+    val remoteActivationOfflineAllow: String get() = when (lang) {
+        AppLanguage.CHINESE -> "无网络时直接放行（不安全）"
+        AppLanguage.ENGLISH -> "Allow when offline (insecure)"
+        AppLanguage.ARABIC -> "السماح عند عدم الاتصال (غير آمن)"
+    }
+
+    val remoteActivationPrivacyNote: String get() = when (lang) {
+        AppLanguage.CHINESE -> "启用后，应用会把激活码与设备标识发送到你填写的服务器。请在隐私说明中告知用户。"
+        AppLanguage.ENGLISH -> "When enabled, the app sends the activation code and a device identifier to the server you configure. Disclose this to your users."
+        AppLanguage.ARABIC -> "عند التمكين، يرسل التطبيق رمز التفعيل ومعرّف الجهاز إلى الخادم الذي تقوم بتكوينه. أبلغ مستخدميك بذلك."
+    }
+
+    val remoteActivationMisconfigured: String get() = when (lang) {
+        AppLanguage.CHINESE -> "在线验证配置不完整"
+        AppLanguage.ENGLISH -> "Online verification is not configured correctly"
+        AppLanguage.ARABIC -> "لم يتم تكوين التحقق عبر الإنترنت بشكل صحيح"
+    }
+
+    val remoteActivationInsecureUrl: String get() = when (lang) {
+        AppLanguage.CHINESE -> "验证接口必须使用 HTTPS"
+        AppLanguage.ENGLISH -> "Verification endpoint must use HTTPS"
+        AppLanguage.ARABIC -> "يجب أن تستخدم نقطة نهاية التحقق HTTPS"
+    }
+
+    val remoteActivationRejected: String get() = when (lang) {
+        AppLanguage.CHINESE -> "服务器拒绝了此激活码"
+        AppLanguage.ENGLISH -> "The server rejected this activation code"
+        AppLanguage.ARABIC -> "رفض الخادم رمز التفعيل هذا"
+    }
+
+    val remoteActivationSignatureFailed: String get() = when (lang) {
+        AppLanguage.CHINESE -> "服务器响应验签失败"
+        AppLanguage.ENGLISH -> "Server response signature verification failed"
+        AppLanguage.ARABIC -> "فشل التحقق من توقيع استجابة الخادم"
+    }
+
+    val remoteActivationOfflineDenied: String get() = when (lang) {
+        AppLanguage.CHINESE -> "无法连接验证服务器，请检查网络"
+        AppLanguage.ENGLISH -> "Cannot reach the verification server, please check your network"
+        AppLanguage.ARABIC -> "تعذّر الوصول إلى خادم التحقق، يرجى التحقق من اتصالك"
+    }
+
+    val remoteActivationOfflineNoCache: String get() = when (lang) {
+        AppLanguage.CHINESE -> "无法连接验证服务器，且没有可用的离线凭据"
+        AppLanguage.ENGLISH -> "Cannot reach the verification server and no offline credential is available"
+        AppLanguage.ARABIC -> "تعذّر الوصول إلى خادم التحقق ولا يتوفر اعتماد دون اتصال"
+    }
+
+
     val activationCodeBoundToOtherDevice: String get() = when (lang) {
         AppLanguage.CHINESE -> "此激活码已绑定到其他设备"
         AppLanguage.ENGLISH -> "This activation code is bound to another device"
@@ -17728,6 +17819,48 @@ object Strings {
         AppLanguage.CHINESE -> "隐藏顶部浏览器导航栏，无需开启全屏模式即可使用"
         AppLanguage.ENGLISH -> "Hide the top browser navigation bar, works independently without fullscreen mode"
         AppLanguage.ARABIC -> "إخفاء شريط التنقل العلوي للمتصفح، يعمل بشكل مستقل بدون وضع ملء الشاشة"
+    }
+
+    val toolbarShowTitleLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "显示标题"
+        AppLanguage.ENGLISH -> "Show Title"
+        AppLanguage.ARABIC -> "إظهار العنوان"
+    }
+
+    val toolbarShowTitleHint: String get() = when (lang) {
+        AppLanguage.CHINESE -> "在工具栏显示页面标题或应用名称"
+        AppLanguage.ENGLISH -> "Show the page title or app name in the toolbar"
+        AppLanguage.ARABIC -> "إظهار عنوان الصفحة أو اسم التطبيق في شريط الأدوات"
+    }
+
+    val toolbarShowUrlLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "显示网址"
+        AppLanguage.ENGLISH -> "Show URL"
+        AppLanguage.ARABIC -> "إظهار العنوان URL"
+    }
+
+    val toolbarShowUrlHint: String get() = when (lang) {
+        AppLanguage.CHINESE -> "在工具栏标题下方显示当前网址"
+        AppLanguage.ENGLISH -> "Show the current URL below the toolbar title"
+        AppLanguage.ARABIC -> "إظهار العنوان URL الحالي أسفل عنوان شريط الأدوات"
+    }
+
+    val toolbarShowBackLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "显示后退按钮"
+        AppLanguage.ENGLISH -> "Show Back Button"
+        AppLanguage.ARABIC -> "إظهار زر الرجوع"
+    }
+
+    val toolbarShowForwardLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "显示前进按钮"
+        AppLanguage.ENGLISH -> "Show Forward Button"
+        AppLanguage.ARABIC -> "إظهار زر التقدم"
+    }
+
+    val toolbarShowRefreshLabel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "显示刷新按钮"
+        AppLanguage.ENGLISH -> "Show Refresh Button"
+        AppLanguage.ARABIC -> "إظهار زر التحديث"
     }
 
     val splashHint: String get() = when (lang) {

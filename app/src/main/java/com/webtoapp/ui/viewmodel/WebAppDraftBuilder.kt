@@ -39,6 +39,15 @@ private fun ActivationDialogConfig?.normalize(): ActivationDialogConfig? {
     }
 }
 
+private fun com.webtoapp.data.model.RemoteActivationConfig?.normalize(): com.webtoapp.data.model.RemoteActivationConfig? {
+    val config = this ?: return null
+    return if (!config.enabled && config.verifyUrl.isBlank() && config.publicKeyBase64.isBlank()) {
+        null
+    } else {
+        config
+    }
+}
+
 fun EditState.toDraftPayload(
     normalizedUrl: String,
     iconPath: String?,
@@ -86,6 +95,7 @@ fun WebApp?.applyDraft(
         overrides.appNameFallback ?: this?.name.orEmpty()
     }
     val resolvedActivationDialogConfig = editState.activationDialogConfig.normalize()
+    val resolvedRemoteActivationConfig = editState.activationRemoteConfig.normalize()
     return this?.copy(
         name = resolvedName,
         url = payload.normalizedUrl,
@@ -97,6 +107,7 @@ fun WebApp?.applyDraft(
         activationCodeList = editState.activationCodeList,
         activationRequireEveryTime = editState.activationRequireEveryTime,
         activationDialogConfig = resolvedActivationDialogConfig,
+        activationRemoteConfig = resolvedRemoteActivationConfig,
         adsEnabled = editState.adsEnabled,
         adConfig = editState.adConfig,
         announcementEnabled = editState.announcementEnabled,
@@ -131,6 +142,7 @@ fun WebApp?.applyDraft(
         activationCodeList = editState.activationCodeList,
         activationRequireEveryTime = editState.activationRequireEveryTime,
         activationDialogConfig = resolvedActivationDialogConfig,
+        activationRemoteConfig = resolvedRemoteActivationConfig,
         adsEnabled = editState.adsEnabled,
         adConfig = editState.adConfig,
         announcementEnabled = editState.announcementEnabled,

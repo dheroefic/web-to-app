@@ -26,6 +26,7 @@ fun ShellActivationDialog(
     val context = LocalContext.current
     val activation = WebToAppApplication.activation
     val announcement = WebToAppApplication.announcement
+    var activationError by remember { mutableStateOf<String?>(null) }
 
     ActivationDialog(
         onDismiss = onDismiss,
@@ -33,23 +34,54 @@ fun ShellActivationDialog(
         customSubtitle = config.activationDialogSubtitle,
         customInputLabel = config.activationDialogInputLabel,
         customButtonText = config.activationDialogButtonText,
+        errorMessage = activationError,
         onActivate = { code ->
             val scope = (context as? AppCompatActivity)?.lifecycleScope
+            activationError = null
             scope?.launch {
-                val result = activation.verifyActivationCode(
-                    -1L,
-                    code,
-                    config.activationCodes
-                )
+                val result = if (config.activationRemoteEnabled) {
+                    activation.verifyRemoteActivation(
+                        -1L,
+                        code,
+                        activation.buildRemoteRequest(
+                            verifyUrl = config.activationRemoteVerifyUrl,
+                            publicKeyBase64 = config.activationRemotePublicKey,
+                            offlinePolicy = parseOfflinePolicy(config.activationRemoteOfflinePolicy)
+                        )
+                    )
+                } else {
+                    activation.verifyActivationCode(
+                        -1L,
+                        code,
+                        config.activationCodes
+                    )
+                }
                 when (result) {
                     is ActivationResult.Success -> {
                         onActivated()
                     }
-                    else -> {}
+                    is ActivationResult.Invalid -> {
+                        activationError = result.message.ifBlank {
+                            com.webtoapp.core.i18n.Strings.invalidActivationCode
+                        }
+                    }
+                    else -> {
+                        activationError = com.webtoapp.core.i18n.Strings.invalidActivationCode
+                    }
                 }
             }
         }
     )
+}
+
+private fun parseOfflinePolicy(
+    raw: String
+): com.webtoapp.data.model.RemoteActivationOfflinePolicy {
+    return try {
+        com.webtoapp.data.model.RemoteActivationOfflinePolicy.valueOf(raw)
+    } catch (e: Exception) {
+        com.webtoapp.data.model.RemoteActivationOfflinePolicy.ALLOW_CACHED
+    }
 }
 
 @Composable

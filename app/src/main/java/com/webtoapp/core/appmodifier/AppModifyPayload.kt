@@ -14,6 +14,7 @@ data class AppModifyPayload(
     val activationCodes: List<ActivationCode> = emptyList(),
     val activationRequireEveryTime: Boolean = false,
     val activationDialogConfig: ActivationDialogConfig = ActivationDialogConfig(),
+    val activationRemoteConfig: com.webtoapp.data.model.RemoteActivationConfig = com.webtoapp.data.model.RemoteActivationConfig(),
     val announcementEnabled: Boolean = false,
     val announcement: Announcement = Announcement()
 ) {
@@ -22,7 +23,8 @@ data class AppModifyPayload(
 
     fun needsLauncher(): Boolean {
         val hasSplash = splashEnabled && !splashConfig.mediaPath.isNullOrBlank()
-        val hasActivation = activationEnabled && activationCodes.isNotEmpty()
+        val hasActivation = activationEnabled &&
+            (activationCodes.isNotEmpty() || activationRemoteConfig.enabled)
         val hasAnnouncement = announcementEnabled && announcement.title.isNotBlank()
         return hasSplash || hasActivation || hasAnnouncement
     }

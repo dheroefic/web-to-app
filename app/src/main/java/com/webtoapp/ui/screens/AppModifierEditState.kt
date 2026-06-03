@@ -25,6 +25,7 @@ data class AppModifierEditState(
     val activationCodes: List<ActivationCode> = emptyList(),
     val activationRequireEveryTime: Boolean = false,
     val activationDialogConfig: ActivationDialogConfig = ActivationDialogConfig(),
+    val activationRemoteConfig: com.webtoapp.data.model.RemoteActivationConfig = com.webtoapp.data.model.RemoteActivationConfig(),
 
     val announcementEnabled: Boolean = false,
     val announcement: Announcement = Announcement(),
@@ -43,6 +44,7 @@ data class AppModifierEditState(
             activationCodes = activationCodes,
             activationRequireEveryTime = activationRequireEveryTime,
             activationDialogConfig = activationDialogConfig,
+            activationRemoteConfig = activationRemoteConfig,
             announcementEnabled = announcementEnabled,
             announcement = announcement,
             bgmEnabled = bgmEnabled,

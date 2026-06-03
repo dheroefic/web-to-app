@@ -39,6 +39,7 @@ import com.webtoapp.ui.components.announcement.toUiTemplate
 import com.webtoapp.ui.theme.WebToAppTheme
 import com.webtoapp.util.normalizeExternalIntentUrl
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 
 class SplashLauncherActivity : AppCompatActivity() {
@@ -113,6 +114,7 @@ fun SplashLauncherScreen(
     val activationEnabled = payload.activationEnabled
     val activationRequireEveryTime = payload.activationRequireEveryTime
     val activationCodes = payload.activationCodes
+    val remoteConfig = payload.activationRemoteConfig
     val announcement = payload.announcement
     val announcementEnabled = payload.announcementEnabled
 
@@ -230,12 +232,38 @@ fun SplashLauncherScreen(
 
     if (showActivationDialog) {
         val dialogConfig = payload.activationDialogConfig
+        val scope = rememberCoroutineScope()
+        var activationError by remember { mutableStateOf<String?>(null) }
         ActivationDialog(
             onDismiss = { showActivationDialog = false },
+            errorMessage = activationError,
             onActivate = { code ->
-                if (matchesAnyCode(code, activationCodes)) {
+                if (remoteConfig.enabled) {
+                    activationError = null
+                    scope.launch {
+                        val result = activation.verifyRemoteActivation(
+                            -2L,
+                            code,
+                            activation.buildRemoteRequest(
+                                verifyUrl = remoteConfig.verifyUrl,
+                                publicKeyBase64 = remoteConfig.publicKeyBase64,
+                                offlinePolicy = remoteConfig.offlinePolicy
+                            )
+                        )
+                        if (result is com.webtoapp.core.activation.ActivationResult.Success) {
+                            isActivated = true
+                            showActivationDialog = false
+                        } else if (result is com.webtoapp.core.activation.ActivationResult.Invalid) {
+                            activationError = result.message
+                        } else {
+                            activationError = com.webtoapp.core.i18n.Strings.invalidActivationCode
+                        }
+                    }
+                } else if (matchesAnyCode(code, activationCodes)) {
                     isActivated = true
                     showActivationDialog = false
+                } else {
+                    activationError = com.webtoapp.core.i18n.Strings.invalidActivationCode
                 }
             },
             customTitle = dialogConfig.title,
@@ -280,10 +308,12 @@ fun ActivationDialog(
     customTitle: String = "",
     customSubtitle: String = "",
     customInputLabel: String = "",
-    customButtonText: String = ""
+    customButtonText: String = "",
+    errorMessage: String? = null
 ) {
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val displayError = error ?: errorMessage?.takeIf { it.isNotBlank() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -302,8 +332,8 @@ fun ActivationDialog(
                     },
                     label = { Text(customInputLabel.ifBlank { com.webtoapp.core.i18n.Strings.activationCode }) },
                     singleLine = true,
-                    isError = error != null,
-                    supportingText = error?.let { { Text(it) } }
+                    isError = displayError != null,
+                    supportingText = displayError?.let { { Text(it) } }
                 )
             }
         },

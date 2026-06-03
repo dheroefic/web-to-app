@@ -184,17 +184,25 @@ fun CreateAppScreen(
                 activationCodes = editState.activationCodeList,
                 requireEveryTime = editState.activationRequireEveryTime,
                 dialogConfig = editState.activationDialogConfig,
+                remoteConfig = editState.activationRemoteConfig ?: com.webtoapp.data.model.RemoteActivationConfig(),
                 onEnabledChange = { viewModel.updateEditState { copy(activationEnabled = it) } },
                 onCodesChange = { viewModel.updateEditState { copy(activationCodeList = it) } },
                 onRequireEveryTimeChange = { viewModel.updateEditState { copy(activationRequireEveryTime = it) } },
-                onDialogConfigChange = { viewModel.updateEditState { copy(activationDialogConfig = it) } }
+                onDialogConfigChange = { viewModel.updateEditState { copy(activationDialogConfig = it) } },
+                onRemoteConfigChange = { viewModel.updateEditState { copy(activationRemoteConfig = it) } }
             )
 
             HideBrowserToolbarCard(
                 enabled = editState.webViewConfig.hideBrowserToolbar,
+                webViewConfig = editState.webViewConfig,
                 onEnabledChange = {
                     viewModel.updateEditState {
                         copy(webViewConfig = webViewConfig.copy(hideBrowserToolbar = it))
+                    }
+                },
+                onWebViewConfigChange = { newConfig ->
+                    viewModel.updateEditState {
+                        copy(webViewConfig = newConfig)
                     }
                 }
             )

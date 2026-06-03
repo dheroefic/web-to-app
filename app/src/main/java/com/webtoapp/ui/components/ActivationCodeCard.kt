@@ -88,10 +88,12 @@ fun ActivationCodeCard(
     activationCodes: List<ActivationCode>,
     requireEveryTime: Boolean = false,
     dialogConfig: com.webtoapp.data.model.ActivationDialogConfig = com.webtoapp.data.model.ActivationDialogConfig(),
+    remoteConfig: com.webtoapp.data.model.RemoteActivationConfig = com.webtoapp.data.model.RemoteActivationConfig(),
     onEnabledChange: (Boolean) -> Unit,
     onCodesChange: (List<ActivationCode>) -> Unit,
     onRequireEveryTimeChange: (Boolean) -> Unit = {},
-    onDialogConfigChange: (com.webtoapp.data.model.ActivationDialogConfig) -> Unit = {}
+    onDialogConfigChange: (com.webtoapp.data.model.ActivationDialogConfig) -> Unit = {},
+    onRemoteConfigChange: (com.webtoapp.data.model.RemoteActivationConfig) -> Unit = {}
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showBatchDialog by remember { mutableStateOf(false) }
@@ -180,6 +182,13 @@ fun ActivationCodeCard(
                         onCheckedChange = onRequireEveryTimeChange
                     )
                 }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                RemoteActivationSection(
+                    remoteConfig = remoteConfig,
+                    onRemoteConfigChange = onRemoteConfigChange
+                )
+
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                 Row(
@@ -410,6 +419,98 @@ fun ActivationCodeCard(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun RemoteActivationSection(
+    remoteConfig: com.webtoapp.data.model.RemoteActivationConfig,
+    onRemoteConfigChange: (com.webtoapp.data.model.RemoteActivationConfig) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(weight = 1f, fill = true)) {
+                Text(
+                    text = Strings.remoteActivationTitle,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = Strings.remoteActivationHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            WtaSwitch(
+                checked = remoteConfig.enabled,
+                onCheckedChange = { onRemoteConfigChange(remoteConfig.copy(enabled = it)) }
+            )
+        }
+
+        AnimatedVisibility(
+            visible = remoteConfig.enabled,
+            enter = CardExpandTransition,
+            exit = CardCollapseTransition
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                PremiumTextField(
+                    value = remoteConfig.verifyUrl,
+                    onValueChange = { onRemoteConfigChange(remoteConfig.copy(verifyUrl = it.trim())) },
+                    label = { Text(Strings.remoteActivationUrlLabel) },
+                    placeholder = { Text("https://") },
+                    singleLine = true,
+                    isError = remoteConfig.verifyUrl.isNotBlank() &&
+                        !remoteConfig.verifyUrl.startsWith("https://", ignoreCase = true),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                PremiumTextField(
+                    value = remoteConfig.publicKeyBase64,
+                    onValueChange = { onRemoteConfigChange(remoteConfig.copy(publicKeyBase64 = it.trim())) },
+                    label = { Text(Strings.remoteActivationPublicKeyLabel) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = Strings.remoteActivationOfflineLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                val policies = listOf(
+                    com.webtoapp.data.model.RemoteActivationOfflinePolicy.ALLOW_CACHED to Strings.remoteActivationOfflineAllowCached,
+                    com.webtoapp.data.model.RemoteActivationOfflinePolicy.DENY to Strings.remoteActivationOfflineDeny,
+                    com.webtoapp.data.model.RemoteActivationOfflinePolicy.ALLOW to Strings.remoteActivationOfflineAllow
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    policies.forEach { (policy, label) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onRemoteConfigChange(remoteConfig.copy(offlinePolicy = policy)) },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = remoteConfig.offlinePolicy == policy,
+                                onClick = { onRemoteConfigChange(remoteConfig.copy(offlinePolicy = policy)) }
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = Strings.remoteActivationPrivacyNote,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = com.webtoapp.ui.design.WtaColors.semantic.warning
+                )
+            }
+        }
     }
 }
 

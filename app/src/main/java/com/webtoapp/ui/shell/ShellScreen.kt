@@ -140,7 +140,19 @@ fun ShellScreen(
                 showActivationDialog = true
             } else {
 
-                val activated = activation.isActivated(-1L).first()
+                val locallyActivated = activation.isActivated(-1L).first()
+                val activated = if (locallyActivated && config.activationRemoteEnabled) {
+                    activation.isRemoteStartupAllowed(
+                        -1L,
+                        activation.buildRemoteRequest(
+                            verifyUrl = config.activationRemoteVerifyUrl,
+                            publicKeyBase64 = config.activationRemotePublicKey,
+                            offlinePolicy = parseOfflinePolicy(config.activationRemoteOfflinePolicy)
+                        )
+                    )
+                } else {
+                    locallyActivated
+                }
                 isActivated = activated
                 isActivationChecked = true
                 if (!activated) {
@@ -403,7 +415,7 @@ fun ShellScreen(
         )
     }
 
-    val isDarkTheme = com.webtoapp.ui.theme.LocalIsDarkTheme.current
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
     val effectiveBgType = if (isDarkTheme) statusBarBackgroundTypeDark else statusBarBackgroundType
     val effectiveBgColor = if (isDarkTheme) statusBarBackgroundColorDark else statusBarBackgroundColor
     val effectiveBgImage = if (isDarkTheme) statusBarBackgroundImageDark else statusBarBackgroundImage

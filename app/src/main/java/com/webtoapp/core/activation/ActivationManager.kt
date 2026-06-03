@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.map
 import java.security.MessageDigest
 import java.security.SecureRandom
 
-private val Context.activationDataStore: DataStore<Preferences> by preferencesDataStore(name = "activation")
+internal val Context.activationDataStore: DataStore<Preferences> by preferencesDataStore(name = "activation")
 
 class ActivationManager(private val context: Context) {
 
@@ -35,6 +35,56 @@ class ActivationManager(private val context: Context) {
     }
 
     private val secureRandom = SecureRandom()
+
+    private val remoteVerifier by lazy { RemoteActivationVerifier(context) }
+
+    suspend fun verifyRemoteActivation(
+        appId: Long,
+        inputCode: String,
+        request: RemoteActivationVerifier.RemoteRequest
+    ): ActivationResult {
+        if (inputCode.isBlank()) {
+            return ActivationResult.Empty
+        }
+
+        val lockoutRemaining = getLockoutRemainingMs(appId)
+        if (lockoutRemaining > 0) {
+            return ActivationResult.Invalid(
+                Strings.tooManyAttemptsWithCountdown(formatLockoutRemaining(lockoutRemaining))
+            )
+        }
+
+        val result = remoteVerifier.verify(appId, request.copy(code = normalizeCode(inputCode)))
+        if (result is ActivationResult.Success) {
+            clearFailedAttempts(appId)
+            saveActivationStatus(appId, true)
+        } else if (result is ActivationResult.Invalid) {
+            recordFailedAttempt(appId)
+        }
+        return result
+    }
+
+    suspend fun isRemoteStartupAllowed(
+        appId: Long,
+        request: RemoteActivationVerifier.RemoteRequest
+    ): Boolean {
+        return remoteVerifier.resolveCachedStartup(appId, request)
+    }
+
+    fun buildRemoteRequest(
+        verifyUrl: String,
+        publicKeyBase64: String,
+        offlinePolicy: com.webtoapp.data.model.RemoteActivationOfflinePolicy
+    ): RemoteActivationVerifier.RemoteRequest {
+        return RemoteActivationVerifier.RemoteRequest(
+            verifyUrl = verifyUrl,
+            publicKeyBase64 = publicKeyBase64,
+            offlinePolicy = offlinePolicy,
+            code = "",
+            deviceId = DeviceIdGenerator.getDeviceId(context),
+            packageName = context.packageName
+        )
+    }
 
     suspend fun verifyActivationCode(
         appId: Long,

@@ -59,6 +59,10 @@ data class ApkConfig(
     val activationDialogSubtitle: String get() = activation.dialogSubtitle
     val activationDialogInputLabel: String get() = activation.dialogInputLabel
     val activationDialogButtonText: String get() = activation.dialogButtonText
+    val activationRemoteEnabled: Boolean get() = activation.remoteEnabled
+    val activationRemoteVerifyUrl: String get() = activation.remoteVerifyUrl
+    val activationRemotePublicKey: String get() = activation.remotePublicKey
+    val activationRemoteOfflinePolicy: String get() = activation.remoteOfflinePolicy
 
     val adBlockEnabled: Boolean get() = adBlock.enabled
     val adBlockRules: List<String> get() = adBlock.rules
@@ -99,6 +103,11 @@ data class ApkConfig(
     val customUserAgent: String? get() = webView.customUserAgent
     val hideToolbar: Boolean get() = webView.hideToolbar
     val hideBrowserToolbar: Boolean get() = webView.hideBrowserToolbar
+    val toolbarShowTitle: Boolean get() = webView.toolbarShowTitle
+    val toolbarShowUrl: Boolean get() = webView.toolbarShowUrl
+    val toolbarShowBack: Boolean get() = webView.toolbarShowBack
+    val toolbarShowForward: Boolean get() = webView.toolbarShowForward
+    val toolbarShowRefresh: Boolean get() = webView.toolbarShowRefresh
     val showStatusBarInFullscreen: Boolean get() = webView.showStatusBarInFullscreen
     val showNavigationBarInFullscreen: Boolean get() = webView.showNavigationBarInFullscreen
     val showToolbarInFullscreen: Boolean get() = webView.showToolbarInFullscreen
@@ -381,7 +390,11 @@ data class ActivationBlock(
     val dialogTitle: String = "",
     val dialogSubtitle: String = "",
     val dialogInputLabel: String = "",
-    val dialogButtonText: String = ""
+    val dialogButtonText: String = "",
+    val remoteEnabled: Boolean = false,
+    val remoteVerifyUrl: String = "",
+    val remotePublicKey: String = "",
+    val remoteOfflinePolicy: String = "ALLOW_CACHED"
 )
 
 data class AdBlockBlock(
@@ -430,6 +443,11 @@ data class WebViewBlock(
     val customUserAgent: String? = null,
     val hideToolbar: Boolean = false,
     val hideBrowserToolbar: Boolean = false,
+    val toolbarShowTitle: Boolean = true,
+    val toolbarShowUrl: Boolean = true,
+    val toolbarShowBack: Boolean = true,
+    val toolbarShowForward: Boolean = true,
+    val toolbarShowRefresh: Boolean = true,
     val showStatusBarInFullscreen: Boolean = false,
     val showNavigationBarInFullscreen: Boolean = false,
     val showToolbarInFullscreen: Boolean = false,

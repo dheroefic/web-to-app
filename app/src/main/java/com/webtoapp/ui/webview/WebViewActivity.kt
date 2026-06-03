@@ -2314,12 +2314,14 @@ fun WebViewScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text(
-                                text = if (isTestMode) Strings.moduleTestMode else pageTitle.ifEmpty { webApp?.name ?: "WebApp" },
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            if (isTestMode || webApp?.webViewConfig?.toolbarShowTitle != false) {
+                                Text(
+                                    text = if (isTestMode) Strings.moduleTestMode else pageTitle.ifEmpty { webApp?.name ?: "WebApp" },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                             if (isTestMode && !testModuleIds.isNullOrEmpty()) {
                                 Text(
                                     text = Strings.testingModules.format(testModuleIds.size),
@@ -2327,7 +2329,7 @@ fun WebViewScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     maxLines = 1
                                 )
-                            } else if (currentUrl.isNotEmpty()) {
+                            } else if (currentUrl.isNotEmpty() && webApp?.webViewConfig?.toolbarShowUrl != false) {
                                 Text(
                                     text = currentUrl,
                                     style = MaterialTheme.typography.bodySmall,
@@ -2385,40 +2387,46 @@ fun WebViewScreen(
                                 expanded = showToolbarMenu,
                                 onDismissRequest = { showToolbarMenu = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text(Strings.goBack) },
-                                    onClick = {
-                                        showToolbarMenu = false
-                                        (context as? AppCompatActivity)?.let { activity ->
-                                            ShellWebViewNavigation.goBackOrFinish(activity, webViewRef)
+                                if (webApp?.webViewConfig?.toolbarShowBack != false) {
+                                    DropdownMenuItem(
+                                        text = { Text(Strings.goBack) },
+                                        onClick = {
+                                            showToolbarMenu = false
+                                            (context as? AppCompatActivity)?.let { activity ->
+                                                ShellWebViewNavigation.goBackOrFinish(activity, webViewRef)
+                                            }
+                                        },
+                                        enabled = canGoBack,
+                                        leadingIcon = {
+                                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                                         }
-                                    },
-                                    enabled = canGoBack,
-                                    leadingIcon = {
-                                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(Strings.goForward) },
-                                    onClick = {
-                                        showToolbarMenu = false
-                                        webViewRef?.goForward()
-                                    },
-                                    enabled = canGoForward,
-                                    leadingIcon = {
-                                        Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(Strings.refresh) },
-                                    onClick = {
-                                        showToolbarMenu = false
-                                        webViewRef?.reload()
-                                    },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Refresh, null)
-                                    }
-                                )
+                                    )
+                                }
+                                if (webApp?.webViewConfig?.toolbarShowForward != false) {
+                                    DropdownMenuItem(
+                                        text = { Text(Strings.goForward) },
+                                        onClick = {
+                                            showToolbarMenu = false
+                                            webViewRef?.goForward()
+                                        },
+                                        enabled = canGoForward,
+                                        leadingIcon = {
+                                            Icon(Icons.AutoMirrored.Filled.ArrowForward, null)
+                                        }
+                                    )
+                                }
+                                if (webApp?.webViewConfig?.toolbarShowRefresh != false) {
+                                    DropdownMenuItem(
+                                        text = { Text(Strings.refresh) },
+                                        onClick = {
+                                            showToolbarMenu = false
+                                            webViewRef?.reload()
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Refresh, null)
+                                        }
+                                    )
+                                }
                             }
                         }
                     },
@@ -2899,6 +2907,18 @@ fun WebViewScreen(
         com.webtoapp.ui.components.EnhancedActivationDialog(
             onDismiss = { showActivationDialog = false },
             onActivate = { code ->
+                val remote = webApp?.activationRemoteConfig
+                if (remote?.enabled == true) {
+                    return@EnhancedActivationDialog activation.verifyRemoteActivation(
+                        appId,
+                        code,
+                        activation.buildRemoteRequest(
+                            verifyUrl = remote.verifyUrl,
+                            publicKeyBase64 = remote.publicKeyBase64,
+                            offlinePolicy = remote.offlinePolicy
+                        )
+                    )
+                }
                 val allCodes = webApp?.activationCodeList ?: emptyList()
                 return@EnhancedActivationDialog activation.verifyActivationCodeWithObjects(appId, code, allCodes)
             },

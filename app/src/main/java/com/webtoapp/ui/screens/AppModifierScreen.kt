@@ -538,10 +538,12 @@ private fun AppModifyContent(
                 activationCodes = editState.activationCodes,
                 requireEveryTime = editState.activationRequireEveryTime,
                 dialogConfig = editState.activationDialogConfig,
+                remoteConfig = editState.activationRemoteConfig,
                 onEnabledChange = { update { copy(activationEnabled = it) } },
                 onCodesChange = { update { copy(activationCodes = it) } },
                 onRequireEveryTimeChange = { update { copy(activationRequireEveryTime = it) } },
-                onDialogConfigChange = { update { copy(activationDialogConfig = it) } }
+                onDialogConfigChange = { update { copy(activationDialogConfig = it) } },
+                onRemoteConfigChange = { update { copy(activationRemoteConfig = it) } }
             )
 
             AnnouncementCard(

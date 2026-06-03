@@ -166,6 +166,18 @@ data class ShellConfig(
     @SerializedName("activationDialogButtonText")
     val activationDialogButtonText: String = "",
 
+    @SerializedName("activationRemoteEnabled")
+    val activationRemoteEnabled: Boolean = false,
+
+    @SerializedName("activationRemoteVerifyUrl")
+    val activationRemoteVerifyUrl: String = "",
+
+    @SerializedName("activationRemotePublicKey")
+    val activationRemotePublicKey: String = "",
+
+    @SerializedName("activationRemoteOfflinePolicy")
+    val activationRemoteOfflinePolicy: String = "ALLOW_CACHED",
+
     @SerializedName("adBlockEnabled")
     val adBlockEnabled: Boolean = false,
 
@@ -986,6 +998,21 @@ data class WebViewShellConfig(
 
     @SerializedName("hideBrowserToolbar")
     val hideBrowserToolbar: Boolean = false,
+
+    @SerializedName("toolbarShowTitle")
+    val toolbarShowTitle: Boolean = true,
+
+    @SerializedName("toolbarShowUrl")
+    val toolbarShowUrl: Boolean = true,
+
+    @SerializedName("toolbarShowBack")
+    val toolbarShowBack: Boolean = true,
+
+    @SerializedName("toolbarShowForward")
+    val toolbarShowForward: Boolean = true,
+
+    @SerializedName("toolbarShowRefresh")
+    val toolbarShowRefresh: Boolean = true,
 
     @SerializedName("showStatusBarInFullscreen")
     val showStatusBarInFullscreen: Boolean = false,

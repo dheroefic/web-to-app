@@ -56,6 +56,7 @@ data class WebApp(
     val activationEnabled: Boolean = false,
     val activationCodeList: List<com.webtoapp.core.activation.ActivationCode> = emptyList(),
     val activationRequireEveryTime: Boolean = false,
+    val activationRemoteConfig: RemoteActivationConfig? = null,
     val isActivated: Boolean = false,
 
     val adsEnabled: Boolean = false,
@@ -253,6 +254,11 @@ data class WebViewConfig(
     val downloadEnabled: Boolean = true,
     val openExternalLinks: Boolean = false,
     val hideBrowserToolbar: Boolean = false,
+    val toolbarShowTitle: Boolean = true,
+    val toolbarShowUrl: Boolean = true,
+    val toolbarShowBack: Boolean = true,
+    val toolbarShowForward: Boolean = true,
+    val toolbarShowRefresh: Boolean = true,
     val hideToolbar: Boolean = false,
     val showStatusBarInFullscreen: Boolean = false,
     val showNavigationBarInFullscreen: Boolean = false,
@@ -1164,6 +1170,19 @@ data class ActivationDialogConfig(
     val subtitle: String = "",
     val inputLabel: String = "",
     val buttonText: String = ""
+)
+
+enum class RemoteActivationOfflinePolicy {
+    ALLOW_CACHED,
+    DENY,
+    ALLOW
+}
+
+data class RemoteActivationConfig(
+    val enabled: Boolean = false,
+    val verifyUrl: String = "",
+    val publicKeyBase64: String = "",
+    val offlinePolicy: RemoteActivationOfflinePolicy = RemoteActivationOfflinePolicy.ALLOW_CACHED
 )
 
 data class AutoStartConfig(

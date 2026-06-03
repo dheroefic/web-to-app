@@ -92,6 +92,7 @@ class AppCloner(private val context: Context) {
                 activationCodes = config.activationCodes,
                 activationRequireEveryTime = config.activationRequireEveryTime,
                 activationDialogConfig = config.activationDialogConfig,
+                activationRemoteConfig = config.activationRemoteConfig,
                 announcementEnabled = config.announcementEnabled,
                 announcement = config.announcement
             )

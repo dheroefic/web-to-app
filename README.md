@@ -348,7 +348,14 @@ itself ships with a minimal permission set (see `AndroidManifest.xml`).
   Anti-AD, and several regional lists).
 - **Activation code gating** — per-launch or persistent; codes can be
   permanent, time-limited, usage-limited, device-bound, or combined
-  (`ActivationCodeType`).
+  (`ActivationCodeType`). Codes are verified locally by default, or against
+  **your own HTTPS endpoint** (`RemoteActivationConfig`) so you can revoke and
+  issue them without rebuilding — the server response is checked with an
+  EC P-256 signature you control, with a configurable offline policy. Remote
+  verification still runs on the client, so it raises the bar rather than
+  preventing a determined bypass. See
+  [`docs/remote-activation.md`](docs/remote-activation.md) for the server
+  contract and a reference implementation.
 
 </details>
 

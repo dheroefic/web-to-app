@@ -16,10 +16,12 @@ fun ActivationDialog(
     customTitle: String = "",
     customSubtitle: String = "",
     customInputLabel: String = "",
-    customButtonText: String = ""
+    customButtonText: String = "",
+    errorMessage: String? = null
 ) {
     var code by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    val displayError = error ?: errorMessage?.takeIf { it.isNotBlank() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -38,8 +40,8 @@ fun ActivationDialog(
                     },
                     label = { Text(customInputLabel.ifBlank { com.webtoapp.core.i18n.Strings.activationCode }) },
                     singleLine = true,
-                    isError = error != null,
-                    supportingText = error?.let { { Text(it) } }
+                    isError = displayError != null,
+                    supportingText = displayError?.let { { Text(it) } }
                 )
             }
         },
