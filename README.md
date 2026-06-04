@@ -28,8 +28,7 @@ No IDE. No build server. No PC.
 ---
 
 <div align="center">
-<img src="png/1.png" width="19%" /><img src="png/2.png" width="19%" /><img src="png/3.png" width="19%" /><img src="png/4.png" width="19%" /><img src="png/5.png" width="19%" />
-<img src="png/6.png" width="19%" /><img src="png/7.png" width="19%" /><img src="png/8.png" width="19%" /><img src="png/9.png" width="19%" /><img src="png/10.png" width="19%" />
+<img src="social-preview.jpg" width="90%" alt="WebToApp: My Apps home with built Web/HTML/Python/Image apps, the 12-type Create App picker, the main menu (AI Coding, Extension Modules, App Modifier, Local Build Environment, Runtime Manager, Port Manager, Browser Kernel, Hosts Blocking, Usage Stats), and the per-app actions (Edit, Create Shortcut, Build APK, Share APK, Export APK) — all on-device APK building from your phone, no PC required" />
 </div>
 
 ---

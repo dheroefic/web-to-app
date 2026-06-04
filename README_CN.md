@@ -28,8 +28,7 @@
 ---
 
 <div align="center">
-<img src="png/1.png" width="19%" /><img src="png/2.png" width="19%" /><img src="png/3.png" width="19%" /><img src="png/4.png" width="19%" /><img src="png/5.png" width="19%" />
-<img src="png/6.png" width="19%" /><img src="png/7.png" width="19%" /><img src="png/8.png" width="19%" /><img src="png/9.png" width="19%" /><img src="png/10.png" width="19%" />
+<img src="social-preview.jpg" width="90%" alt="WebToApp:「我的应用」主界面(已生成的 Web/HTML/Python/Image 应用)、「创建应用」12 种类型选择器、主菜单(AI Coding、Extension Modules、App Modifier、Local Build Environment、Runtime Manager、Port Manager、Browser Kernel、Hosts Blocking、Usage Stats)、单应用操作菜单(Edit、Create Shortcut、Build APK、Share APK、Export APK)——全部在手机端完成 APK 打包,无需电脑" />
 </div>
 
 ---
