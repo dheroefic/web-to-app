@@ -33,6 +33,8 @@ class FloatingWindowManager(private val context: Context) {
 
         private const val TITLE_BAR_HEIGHT_DP = 40
 
+        private const val DRAG_STRIP_HEIGHT_DP = 22
+
         private const val MINI_BUTTON_SIZE_DP = 56
 
         private const val RESIZE_HANDLE_SIZE_DP = 28
@@ -240,6 +242,13 @@ class FloatingWindowManager(private val context: Context) {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 titleBarHeight
             ))
+        } else if (!config.lockPosition) {
+            val dragStrip = createDragHandleStrip(density)
+            val stripHeight = (DRAG_STRIP_HEIGHT_DP * density).toInt()
+            contentLayout.addView(dragStrip, LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                stripHeight
+            ))
         }
 
         val webViewContainer = FrameLayout(context)
@@ -312,6 +321,27 @@ class FloatingWindowManager(private val context: Context) {
         webView?.let { onWebViewCreated?.invoke(it) }
 
         return rootLayout
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun createDragHandleStrip(density: Float): View {
+        val strip = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(0xCC1E1E2E.toInt())
+            contentDescription = Strings.floatingWindowDragHandle
+        }
+
+        val dragIndicator = TextView(context).apply {
+            text = "⠿"
+            setTextColor(0x99AAAACC.toInt())
+            textSize = 14f
+        }
+        strip.addView(dragIndicator)
+
+        setupDragHandler(strip)
+
+        return strip
     }
 
     @SuppressLint("ClickableViewAccessibility")

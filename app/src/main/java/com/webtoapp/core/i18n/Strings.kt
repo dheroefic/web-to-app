@@ -20854,6 +20854,12 @@ object Strings {
         AppLanguage.ARABIC -> "يختفي بعد 3 ثوانٍ من عدم النشاط، ويعود عند اللمس"
     }
 
+    val floatingWindowDragHandle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "拖动以移动窗口"
+        AppLanguage.ENGLISH -> "Drag to move window"
+        AppLanguage.ARABIC -> "اسحب لتحريك النافذة"
+    }
+
     val fwEdgeSnapping: String get() = when (lang) {
         AppLanguage.CHINESE -> "边缘吸附"
         AppLanguage.ENGLISH -> "Edge Snapping"
