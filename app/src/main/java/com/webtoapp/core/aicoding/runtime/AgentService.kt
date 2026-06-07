@@ -23,6 +23,7 @@ import com.webtoapp.core.aicoding.permission.PermissionMode
 import com.webtoapp.core.aicoding.permission.PermissionPrompter
 import com.webtoapp.core.aicoding.tool.ToolContext
 import com.webtoapp.core.aicoding.tool.ToolRegistry
+import com.webtoapp.core.ai.LiteLLMModelRegistry
 import com.webtoapp.core.i18n.Strings
 import com.webtoapp.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
@@ -109,7 +110,8 @@ class AgentService : Service() {
                         toolContext = ctx,
                         registry = request.registry,
                         temperature = request.temperature,
-                        maxTurns = request.maxTurns
+                        maxTurns = request.maxTurns,
+                        maxTokens = resolveMaxOutputTokens(ctx.textModel.model)
                     )
                 ).collect { _events.emit(it) }
             } catch (t: Throwable) {
@@ -120,6 +122,14 @@ class AgentService : Service() {
                 abortController = null
             }
         }
+    }
+
+    private fun resolveMaxOutputTokens(model: com.webtoapp.data.model.AiModel): Int {
+        val fromRegistry = runCatching {
+            LiteLLMModelRegistry.getInstance(this).getMaxOutputTokens(model.id, model.provider)
+        }.getOrNull()
+        return fromRegistry?.takeIf { it > 0 }?.coerceAtMost(MAX_OUTPUT_TOKENS_CEILING)
+            ?: DEFAULT_MAX_OUTPUT_TOKENS
     }
 
     fun cancel() {
@@ -197,5 +207,7 @@ class AgentService : Service() {
         private const val CHANNEL_ID = "aicoding_agent_v3"
         private const val NOTIFICATION_ID = 1201
         private const val WAKE_LOCK_TIMEOUT_MS = 20L * 60 * 1000
+        private const val DEFAULT_MAX_OUTPUT_TOKENS = 8192
+        private const val MAX_OUTPUT_TOKENS_CEILING = 32768
     }
 }

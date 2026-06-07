@@ -106,6 +106,10 @@ class LiteLLMModelRegistry private constructor() {
         return findModel(modelId, provider)?.maxInputTokens?.takeIf { it > 0 }
     }
 
+    fun getMaxOutputTokens(modelId: String, provider: AiProvider? = null): Int? {
+        return findModel(modelId, provider)?.maxOutputTokens?.takeIf { it > 0 }
+    }
+
     fun getInputPrice(modelId: String, provider: AiProvider? = null): Double? {
         return findModel(modelId, provider)?.inputCostPerMillion?.takeIf { it > 0.0 }
     }
