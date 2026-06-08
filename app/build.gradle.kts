@@ -178,6 +178,7 @@ android {
 }
 
 val shellTemplateOutput = project(":shell").layout.buildDirectory.file("outputs/apk/release/shell-release.apk")
+val skipShellTemplateSync = providers.gradleProperty("skipShellTemplateSync").map(String::toBoolean).orElse(false)
 
 tasks.register<Copy>("syncShellTemplateApk") {
     description = "Builds the dedicated shell template APK and copies it into the app assets."
@@ -189,8 +190,9 @@ tasks.register<Copy>("syncShellTemplateApk") {
 }
 
 tasks.matching { it.name == "preBuild" }.configureEach {
-    dependsOn("syncShellTemplateApk")
-
+    if (!skipShellTemplateSync.get()) {
+        dependsOn("syncShellTemplateApk")
+    }
 }
 
 tasks.register("testClasses") {
