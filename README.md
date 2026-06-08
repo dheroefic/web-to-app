@@ -2,9 +2,7 @@
 
 # WebToApp
 
-### Any website. One tap. An app.
-
-No IDE. No build server. No PC.
+### Build installable Android APKs from websites, HTML projects, media, and local server apps, directly on your phone.
 
 **English** · [简体中文](README_CN.md)
 
