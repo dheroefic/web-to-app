@@ -43,7 +43,7 @@ import com.webtoapp.ui.screens.create.WtaCreateFlowScaffold
 import com.webtoapp.ui.screens.create.WtaCreateFlowSection
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreateMultiWebAppScreen(
     existingAppId: Long = 0L,
@@ -627,19 +627,10 @@ private fun AddSiteDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    val types = listOf("URL", "LOCAL", "INLINE_HTML", "EXISTING")
-                    val labels = listOf(Strings.multiWebTypeUrl, Strings.multiWebTypeLocal, Strings.multiWebTypeInline, Strings.multiWebTypeExisting)
-                    types.forEachIndexed { index, type ->
-                        SegmentedButton(
-                            selected = sourceType == type,
-                            onClick = { sourceType = type },
-                            shape = SegmentedButtonDefaults.itemShape(index, types.size)
-                        ) {
-                            Text(labels[index], maxLines = 1)
-                        }
-                    }
-                }
+                MultiWebSourceTypeSelector(
+                    sourceType = sourceType,
+                    onSourceTypeChange = { sourceType = it }
+                )
 
                 if (sourceType == "URL") {
                     PremiumTextField(
@@ -1021,6 +1012,52 @@ private fun AddSiteDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun MultiWebSourceTypeSelector(
+    sourceType: String,
+    onSourceTypeChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val options = listOf(
+        "URL" to Strings.multiWebTypeUrl,
+        "LOCAL" to Strings.multiWebTypeLocal,
+        "INLINE_HTML" to Strings.multiWebTypeInline,
+        "EXISTING" to Strings.multiWebTypeExisting
+    )
+
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { (type, label) ->
+            FilterChip(
+                selected = sourceType == type,
+                onClick = { onSourceTypeChange(type) },
+                label = {
+                    Text(
+                        text = label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                leadingIcon = if (sourceType == type) {
+                    {
+                        Icon(
+                            imageVector = Icons.Outlined.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                } else {
+                    null
+                }
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditSiteDialog(
@@ -1076,19 +1113,10 @@ private fun EditSiteDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    val types = listOf("URL", "LOCAL", "INLINE_HTML", "EXISTING")
-                    val labels = listOf(Strings.multiWebTypeUrl, Strings.multiWebTypeLocal, Strings.multiWebTypeInline, Strings.multiWebTypeExisting)
-                    types.forEachIndexed { index, type ->
-                        SegmentedButton(
-                            selected = sourceType == type,
-                            onClick = { sourceType = type },
-                            shape = SegmentedButtonDefaults.itemShape(index, types.size)
-                        ) {
-                            Text(labels[index], maxLines = 1)
-                        }
-                    }
-                }
+                MultiWebSourceTypeSelector(
+                    sourceType = sourceType,
+                    onSourceTypeChange = { sourceType = it }
+                )
 
                 if (sourceType == "URL") {
                     PremiumTextField(
