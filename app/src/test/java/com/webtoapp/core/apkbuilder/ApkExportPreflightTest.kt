@@ -12,7 +12,6 @@ import com.webtoapp.data.model.HtmlLoadMode
 import com.webtoapp.data.model.NetworkTrustConfig
 import com.webtoapp.data.model.WebApp
 import com.webtoapp.data.model.WordPressConfig
-import com.webtoapp.ui.shell.buildPackagedHtmlFileSchemeEntryUrl
 import com.webtoapp.ui.shell.buildPackagedHtmlShellEntryUrl
 import java.io.File
 import org.junit.Rule
@@ -80,7 +79,7 @@ class ApkExportPreflightTest {
     }
 
     @Test
-    fun `auto html static project uses file scheme`() {
+    fun `auto html static project uses loopback server`() {
         val projectDir = temp.newFolder("static-html")
         File(projectDir, "index.html").writeText("<html><body>Hello</body></html>")
         val app = WebApp(
@@ -95,8 +94,10 @@ class ApkExportPreflightTest {
 
         val config = app.toApkConfig("com.example.static", context)
 
-        assertThat(config.htmlUsesFileScheme).isTrue()
-        assertThat(config.targetUrl).isEqualTo(buildPackagedHtmlFileSchemeEntryUrl("index.html"))
+        assertThat(config.htmlUsesFileScheme).isFalse()
+        assertThat(config.targetUrl).isEqualTo(
+            buildPackagedHtmlShellEntryUrl("com.example.static", "index.html")
+        )
     }
 
     @Test
@@ -144,7 +145,10 @@ class ApkExportPreflightTest {
         val fileConfig = fileApp.toApkConfig("com.example.file", context)
         val serverConfig = serverApp.toApkConfig("com.example.server", context)
 
-        assertThat(fileConfig.htmlUsesFileScheme).isTrue()
+        assertThat(fileConfig.htmlUsesFileScheme).isFalse()
+        assertThat(fileConfig.targetUrl).isEqualTo(
+            buildPackagedHtmlShellEntryUrl("com.example.file", "index.html")
+        )
         assertThat(serverConfig.htmlUsesFileScheme).isFalse()
     }
 

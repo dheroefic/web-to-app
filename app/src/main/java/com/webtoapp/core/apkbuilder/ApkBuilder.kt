@@ -16,7 +16,6 @@ import com.webtoapp.core.crypto.EncryptedApkBuilder
 import com.webtoapp.core.crypto.EncryptionConfig
 import com.webtoapp.core.crypto.KeyManager
 import com.webtoapp.core.crypto.toHexString
-import com.webtoapp.core.webview.HtmlRuntimeLoadInspector
 import com.webtoapp.core.shell.BgmShellItem
 import com.webtoapp.core.shell.LrcShellTheme
 import com.webtoapp.data.model.ApkRuntimePermissions
@@ -28,7 +27,6 @@ import com.webtoapp.data.model.getActivationCodeStrings
 import com.webtoapp.ui.components.announcement.toUiTemplate
 import com.webtoapp.ui.shell.buildPackagedHtmlShellEntryUrl
 import com.webtoapp.ui.theme.ThemeManager
-import com.webtoapp.ui.shell.buildPackagedHtmlFileSchemeEntryUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -2813,7 +2811,7 @@ builtins.__import__ = _w2a_import
 
 fun WebApp.toApkConfig(packageName: String, context: android.content.Context? = null): ApkConfig {
     val htmlUsesFileScheme = computeHtmlUsesFileScheme(context)
-    val effectiveTargetUrl = computeEffectiveTargetUrl(packageName, htmlUsesFileScheme)
+    val effectiveTargetUrl = computeEffectiveTargetUrl(packageName)
     val bakedDarkMode = context?.let { ThemeManager.getInstance(it).currentDarkMode.name } ?: "SYSTEM"
     return ApkConfig(
         meta = buildMetaBlock(packageName, effectiveTargetUrl, htmlUsesFileScheme, bakedDarkMode),
@@ -2849,11 +2847,10 @@ fun WebApp.toApkConfig(packageName: String, context: android.content.Context? = 
     )
 }
 
-private fun WebApp.computeEffectiveTargetUrl(packageName: String, htmlUsesFileScheme: Boolean): String = when (appType) {
+private fun WebApp.computeEffectiveTargetUrl(packageName: String): String = when (appType) {
     com.webtoapp.data.model.AppType.HTML -> {
         val entryFile = htmlConfig?.getValidEntryFile() ?: "index.html"
-        if (htmlUsesFileScheme) buildPackagedHtmlFileSchemeEntryUrl(entryFile)
-        else buildPackagedHtmlShellEntryUrl(packageName, entryFile)
+        buildPackagedHtmlShellEntryUrl(packageName, entryFile)
     }
     com.webtoapp.data.model.AppType.IMAGE,
     com.webtoapp.data.model.AppType.VIDEO -> "asset://media_content"
@@ -2869,8 +2866,7 @@ private fun WebApp.computeEffectiveTargetUrl(packageName: String, htmlUsesFileSc
     }
     com.webtoapp.data.model.AppType.FRONTEND -> {
         val entryFile = htmlConfig?.getValidEntryFile() ?: "index.html"
-        if (htmlUsesFileScheme) buildPackagedHtmlFileSchemeEntryUrl(entryFile)
-        else buildPackagedHtmlShellEntryUrl(packageName, entryFile)
+        buildPackagedHtmlShellEntryUrl(packageName, entryFile)
     }
     com.webtoapp.data.model.AppType.PHP_APP -> "phpapp://localhost"
     com.webtoapp.data.model.AppType.PYTHON_APP -> "pythonapp://localhost"
@@ -2881,35 +2877,7 @@ private fun WebApp.computeEffectiveTargetUrl(packageName: String, htmlUsesFileSc
 
 @Suppress("UNUSED_PARAMETER")
 private fun WebApp.computeHtmlUsesFileScheme(context: android.content.Context?): Boolean {
-    if (appType != com.webtoapp.data.model.AppType.HTML &&
-        appType != com.webtoapp.data.model.AppType.FRONTEND) {
-        return false
-    }
-    return when (htmlConfig?.loadMode ?: HtmlLoadMode.AUTO) {
-        HtmlLoadMode.FILE -> true
-        HtmlLoadMode.LOCAL_HTTP -> false
-        HtmlLoadMode.AUTO -> context?.let { resolveHtmlSourceDir(it) }
-            ?.takeIf {
-                java.io.File(
-                    it,
-                    htmlConfig?.getValidEntryFile()?.removePrefix("/")?.ifBlank { "index.html" } ?: "index.html"
-                ).exists()
-            }
-            ?.let { HtmlRuntimeLoadInspector.prefersFileScheme(it) }
-            ?: false
-    }
-}
-
-private fun WebApp.resolveHtmlSourceDir(context: android.content.Context): java.io.File? {
-    val stored = htmlConfig?.projectId
-        ?.takeIf { it.isNotBlank() }
-        ?.let { java.io.File(context.filesDir, "html_projects/$it") }
-        ?.takeIf { it.exists() && it.isDirectory }
-    if (stored != null) return stored
-    return htmlConfig?.projectDir
-        ?.takeIf { it.isNotBlank() }
-        ?.let { java.io.File(it) }
-        ?.takeIf { it.exists() && it.isDirectory }
+    return false
 }
 
 private fun WebApp.buildEffectiveRuntimePermissions(): ApkRuntimePermissions {

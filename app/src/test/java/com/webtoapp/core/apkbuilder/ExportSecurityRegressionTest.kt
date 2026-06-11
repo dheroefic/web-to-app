@@ -350,7 +350,7 @@ class ExportSecurityRegressionTest {
     }
 
     @Test
-    fun `file scheme html export omits network permissions`() {
+    fun `html export keeps local server network permissions`() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val builder = ApkBuilder(context)
         val method = ApkBuilder::class.java.getDeclaredMethod(
@@ -374,9 +374,9 @@ class ExportSecurityRegressionTest {
         @Suppress("UNCHECKED_CAST")
         val permissions = method.invoke(builder, config) as List<String>
 
-        assertThat(config.htmlUsesFileScheme).isTrue()
-        assertThat(permissions).doesNotContain("android.permission.INTERNET")
-        assertThat(permissions).doesNotContain("android.permission.ACCESS_NETWORK_STATE")
+        assertThat(config.htmlUsesFileScheme).isFalse()
+        assertThat(permissions).contains("android.permission.INTERNET")
+        assertThat(permissions).contains("android.permission.ACCESS_NETWORK_STATE")
     }
 
     @Test
@@ -408,7 +408,7 @@ class ExportSecurityRegressionTest {
     }
 
     @Test
-    fun `file scheme html with remote announcement link keeps network permissions`() {
+    fun `html with remote announcement link keeps network permissions`() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val builder = ApkBuilder(context)
         val method = ApkBuilder::class.java.getDeclaredMethod(
@@ -437,7 +437,7 @@ class ExportSecurityRegressionTest {
         @Suppress("UNCHECKED_CAST")
         val permissions = method.invoke(builder, config) as List<String>
 
-        assertThat(config.htmlUsesFileScheme).isTrue()
+        assertThat(config.htmlUsesFileScheme).isFalse()
         assertThat(permissions).contains("android.permission.INTERNET")
         assertThat(permissions).contains("android.permission.ACCESS_NETWORK_STATE")
     }
