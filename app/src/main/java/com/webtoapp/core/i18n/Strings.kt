@@ -3460,9 +3460,9 @@ object Strings {
     }
 
     val htmlLoadModeHint: String get() = when (lang) {
-        AppLanguage.CHINESE -> "自动会让简单静态页不带网络权限；游戏、音频、fetch、模块、WASM、PWA 等项目会使用本地服务以获得更好兼容性。"
-        AppLanguage.ENGLISH -> "Auto keeps simple static pages without network permission. Games, audio, fetch, modules, WASM, and PWA projects use a local server for better compatibility."
-        AppLanguage.ARABIC -> "يحافظ الوضع التلقائي على الصفحات الثابتة البسيطة بدون إذن الشبكة. تستخدم الألعاب والصوت و fetch والوحدات و WASM و PWA خادما محليا لتوافق أفضل."
+        AppLanguage.CHINESE -> "本地文件仍可离线运行；导出 APK 会使用应用内本地服务承载 HTML，以兼容游戏、音频、fetch、模块、WASM 和 PWA。"
+        AppLanguage.ENGLISH -> "Local files still run offline. Exported APKs serve HTML through an in-app local server for games, audio, fetch, modules, WASM, and PWA compatibility."
+        AppLanguage.ARABIC -> "تظل الملفات المحلية تعمل دون اتصال. تستخدم ملفات APK المصدرة خادما محليا داخل التطبيق لتوافق الألعاب والصوت و fetch والوحدات و WASM و PWA."
     }
 
     val landscapeModeLabel: String get() = when (lang) {
