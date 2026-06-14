@@ -71,7 +71,7 @@ Supported `AppType` values include Web, HTML, Frontend, WordPress, Node.js, PHP,
 
 | Area | What stands out |
 | --- | --- |
-| APK builder | Binary AXML/ARSC patching, resource injection, permission pruning, V1/V2/V3 signing, AAB metadata generation |
+| APK builder | Binary AXML/ARSC patching, resource injection, permission pruning, V1/V2/V3 signing, Google Play-ready AAB export with on-device signing |
 | WebView control | User-Agent, desktop mode, JS/CSS injection, DNS-over-HTTPS, proxies, custom error pages, PWA cache strategy |
 | Browser engines | System WebView by default, optional GeckoView runtime for Firefox-style rendering |
 | Local runtimes | Node.js, PHP 8.4, Python, Go, and WordPress running through local HTTP servers |
@@ -84,7 +84,9 @@ Supported `AppType` values include Web, HTML, Frontend, WordPress, Node.js, PHP,
 
 Releases are published on [GitHub Releases](https://github.com/shiaho777/web-to-app/releases).
 
-WebToApp intentionally keeps `targetSdk = 28` so generated apps can run native binaries from app storage, similar to Termux. That makes GitHub distribution a better fit than Google Play for now.
+The WebToApp host app itself keeps `targetSdk = 28` on purpose so it can fork and exec native binaries from app storage, like Termux, so the host is distributed through GitHub Releases.
+
+Generated apps, however, are fully publishable to Google Play. The on-device AAB exporter rewrites `targetSdk` to the Play-required level (currently 35) and signs the bundle locally, so Web, HTML, front-end, and media apps can ship to the Play Store directly. Apps that rely on forking local native runtimes (Node.js, PHP, Python, Go, WordPress) are not Play-compatible and stay APK-only.
 
 ## Module Market
 
@@ -187,7 +189,7 @@ The full app has many switches. The sections below group the important ones with
 - Build-time permission injection for the generated APK, with unused permissions pruned from the template manifest.
 - Performance options: image compression, WebP conversion, code minification, lazy loading, DNS prefetch, and preload hints.
 - Full project backup/restore and app data backup/restore.
-- On-device AAB export with protobuf metadata generated locally.
+- On-device AAB export with Play-required `targetSdk` rewrite and protobuf metadata generated locally, signed with your keystore.
 - Keystore creation, import, export, deletion, and certificate fingerprint viewing.
 - PKCS12/PFX/JKS/BKS import, including Android Studio upload-key cases where store password and key password differ.
 - Signature scheme controls for V1, V2, and V3, with auto-fallback for legacy certificate compatibility.
@@ -211,7 +213,7 @@ The full app has many switches. The sections below group the important ones with
 - The repository has two Gradle modules: `app` is the full builder and host; `shell` is the runtime host embedded into generated APKs.
 - Runtime code is authored in `app` and synchronized into `shell`, so shared WebView/runtime behavior has one source of truth.
 - The APK builder patches template APKs at the binary AXML/ARSC level, injects config/resources, prunes permissions, and signs with `apksig`.
-- The host keeps `targetSdk = 28` intentionally so local native runtimes can `fork` and `exec` from app storage.
+- The host keeps `targetSdk = 28` intentionally so local native runtimes can `fork` and `exec` from app storage; the AAB exporter separately rewrites `targetSdk` for Play Store distribution.
 - Server runtimes and optional GeckoView native runtime are downloaded on first use instead of bundled into the base APK.
 
 ## Tech Stack
