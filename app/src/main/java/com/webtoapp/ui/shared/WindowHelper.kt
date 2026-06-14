@@ -226,26 +226,18 @@ object WindowHelper {
         when (mode) {
             KeyboardAdjustMode.RESIZE -> {
 
+                @Suppress("DEPRECATION")
+                activity.window.setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
+                        WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED
+                )
+
                 if (decorFitsSystemWindows) {
-                    @Suppress("DEPRECATION")
-                    activity.window.setSoftInputMode(
-                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
-                            WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED
-                    )
-
                     clearImePadding(contentView)
-
                     AppLogger.d(tag, "键盘模式: RESIZE (系统调整)")
                 } else {
-                    @Suppress("DEPRECATION")
-                    activity.window.setSoftInputMode(
-                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
-                            WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED
-                    )
-
                     installManualImePadding(activity, contentView)
-
-                    AppLogger.d(tag, "键盘模式: RESIZE (边到边调整)")
+                    AppLogger.d(tag, "键盘模式: RESIZE (边到边 + 系统调整)")
                 }
             }
 
