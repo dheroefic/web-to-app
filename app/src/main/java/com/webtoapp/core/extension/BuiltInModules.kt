@@ -5,10 +5,7 @@ import com.webtoapp.core.i18n.Strings
 object BuiltInModules {
 
     fun getAll(): List<ExtensionModule> = listOf(
-        videoDownloader(),
-        bilibiliVideoExtractor(),
-        douyinVideoExtractor(),
-        xiaohongshuExtractor(),
+        mediaDownloader(),
         videoEnhancer(),
         webAnalyzer(),
         findInPage(),
@@ -18,74 +15,20 @@ object BuiltInModules {
         elementBlocker()
     )
 
-    private fun videoDownloader() = ExtensionModule(
-        id = "builtin-video-downloader",
-        name = Strings.builtinVideoDownloader,
-        description = Strings.builtinVideoDownloaderDesc,
+    private fun mediaDownloader() = ExtensionModule(
+        id = "builtin-media-downloader",
+        name = Strings.builtinMediaDownloader,
+        description = Strings.builtinMediaDownloaderDesc,
         icon = "download",
         category = ModuleCategory.MEDIA,
-        tags = listOf(Strings.tagVideo, Strings.tagDownload, "MP4"),
-        version = ModuleVersion(4, "4.0.0", Strings.versionV4Ui),
+        tags = listOf(Strings.tagVideo, Strings.tagDownload, "MP4", "bilibili", "douyin", "xiaohongshu"),
+        version = ModuleVersion(5, "5.0.0", Strings.versionV4Ui),
         author = ModuleAuthor("WebToApp"),
         builtIn = true,
         enabled = false,
         runAt = ModuleRunTime.DOCUMENT_IDLE,
         permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.DOWNLOAD),
-        code = VIDEO_DOWNLOADER_CODE,
-        runMode = ModuleRunMode.INTERACTIVE,
-    )
-
-    private fun bilibiliVideoExtractor() = ExtensionModule(
-        id = "builtin-bilibili-extractor",
-        name = Strings.builtinBilibiliExtractor,
-        description = Strings.builtinBilibiliExtractorDesc,
-        icon = "tv",
-        category = ModuleCategory.MEDIA,
-        tags = listOf(Strings.tagBilibili, "bilibili", Strings.tagVideo),
-        version = ModuleVersion(4, "4.0.0", Strings.versionV4Ui),
-        author = ModuleAuthor("WebToApp"),
-        builtIn = true,
-        enabled = false,
-        runAt = ModuleRunTime.DOCUMENT_IDLE,
-        permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.DOWNLOAD),
-        urlMatches = listOf(UrlMatchRule("*bilibili.com*")),
-        code = BILIBILI_EXTRACTOR_CODE,
-        runMode = ModuleRunMode.INTERACTIVE,
-    )
-
-    private fun douyinVideoExtractor() = ExtensionModule(
-        id = "builtin-douyin-extractor",
-        name = Strings.builtinDouyinExtractor,
-        description = Strings.builtinDouyinExtractorDesc,
-        icon = "music_note",
-        category = ModuleCategory.MEDIA,
-        tags = listOf(Strings.tagDouyin, "douyin", Strings.tagNoWatermark),
-        version = ModuleVersion(4, "4.0.0", Strings.versionV4Ui),
-        author = ModuleAuthor("WebToApp"),
-        builtIn = true,
-        enabled = false,
-        runAt = ModuleRunTime.DOCUMENT_IDLE,
-        permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.DOWNLOAD),
-        urlMatches = listOf(UrlMatchRule("*douyin.com*")),
-        code = DOUYIN_EXTRACTOR_CODE,
-        runMode = ModuleRunMode.INTERACTIVE,
-    )
-
-    private fun xiaohongshuExtractor() = ExtensionModule(
-        id = "builtin-xiaohongshu-extractor",
-        name = Strings.builtinXiaohongshuExtractor,
-        description = Strings.builtinXiaohongshuExtractorDesc,
-        icon = "menu_book",
-        category = ModuleCategory.MEDIA,
-        tags = listOf(Strings.tagXiaohongshu, Strings.tagImage, Strings.tagVideo),
-        version = ModuleVersion(4, "4.0.0", Strings.versionV4Ui),
-        author = ModuleAuthor("WebToApp"),
-        builtIn = true,
-        enabled = false,
-        runAt = ModuleRunTime.DOCUMENT_IDLE,
-        permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.DOWNLOAD),
-        urlMatches = listOf(UrlMatchRule("*xiaohongshu.com*"), UrlMatchRule("*xhslink.com*")),
-        code = XIAOHONGSHU_EXTRACTOR_CODE,
+        code = MEDIA_DOWNLOADER_CODE,
         runMode = ModuleRunMode.INTERACTIVE,
     )
 
@@ -208,83 +151,46 @@ object BuiltInModules {
         runMode = ModuleRunMode.INTERACTIVE,
     )
 
-    private const val VIDEO_DOWNLOADER_CODE = """
+    private const val MEDIA_DOWNLOADER_CODE = """
 (function() {
     'use strict';
 
-    // 多语言支持
     const LANG = (navigator.language || 'zh').toLowerCase().startsWith('ar') ? 'ar' :
                  (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
     const I18N = {
-        zh: { name: '视频下载', noVideo: '未检测到视频', detected: '检测到 {0} 个视频', video: '视频', blob: 'Blob流', download: '下载', blobNotSupported: 'Blob流暂不支持直接下载', downloading: '开始下载...' },
-        en: { name: 'Video Download', noVideo: 'No video detected', detected: '{0} videos detected', video: 'Video', blob: 'Blob', download: 'Download', blobNotSupported: 'Blob stream not supported for direct download', downloading: 'Downloading...' },
-        ar: { name: 'تحميل الفيديو', noVideo: 'لم يتم الكشف عن فيديو', detected: 'تم الكشف عن {0} فيديو', video: 'فيديو', blob: 'Blob', download: 'تحميل', blobNotSupported: 'لا يدعم تحميل Blob مباشرة', downloading: 'جاري التحميل...' }
+        zh: { name: '媒体下载', noMedia: '未检测到媒体', detected: '检测到 {0} 个媒体', video: '视频', image: '图片', blob: 'Blob流', download: '下载', blobNotSupported: 'Blob流暂不支持直接下载', downloading: '开始下载...', bilibiliTip: '提示：B站视频和音频分离，需用工具合并', quality: '画质', dlVideo: '下载视频流', dlAudio: '下载音频流', dlAllImg: '下载全部图片', dlAllVid: '下载全部视频', dlNoWm: '下载无水印视频', copied: '链接已复制', platform: '平台', detected2: '检测到 {0} 张图片，{1} 个视频' },
+        en: { name: 'Media Download', noMedia: 'No media detected', detected: '{0} media items detected', video: 'Video', image: 'Image', blob: 'Blob', download: 'Download', blobNotSupported: 'Blob stream not supported for direct download', downloading: 'Downloading...', bilibiliTip: 'Tip: Bilibili separates video and audio, merge with tools', quality: 'Quality', dlVideo: 'Download Video', dlAudio: 'Download Audio', dlAllImg: 'Download all images', dlAllVid: 'Download all videos', dlNoWm: 'Download without watermark', copied: 'Link copied', platform: 'Platform', detected2: '{0} images, {1} videos detected' },
+        ar: { name: 'تحميل الوسائط', noMedia: 'لم يتم الكشف عن وسائط', detected: 'تم الكشف عن {0} وسائط', video: 'فيديو', image: 'صورة', blob: 'Blob', download: 'تحميل', blobNotSupported: 'لا يدعم تحميل Blob مباشرة', downloading: 'جاري التحميل...', bilibiliTip: 'تلميح: بيليبيلي يفصل الفيديو والصوت، تحتاج أداة للدمج', quality: 'الجودة', dlVideo: 'تحميل الفيديو', dlAudio: 'تحميل الصوت', dlAllImg: 'تحميل كل الصور', dlAllVid: 'تحميل كل الفيديوهات', dlNoWm: 'تحميل بدون علامة مائية', copied: 'تم نسخ الرابط', platform: 'المنصة', detected2: '{0} صورة، {1} فيديو' }
     };
     const T = I18N[LANG] || I18N.en;
 
-    const MODULE = { id: (typeof __MODULE_INFO__ !== 'undefined' ? __MODULE_INFO__.id : 'video-downloader'), name: T.name, icon: '⬇️', color: '#667eea' };
-    let videos = [];
+    const MODULE = { id: (typeof __MODULE_INFO__ !== 'undefined' ? __MODULE_INFO__.id : 'media-downloader'), name: T.name, icon: '⬇️', color: '#667eea' };
+    const host = location.hostname;
+    let mediaList = [];
 
-    function detectVideos() {
-        videos = [];
+    function isBilibili() { return host.includes('bilibili.com'); }
+    function isDouyin() { return host.includes('douyin.com'); }
+    function isXiaohongshu() { return host.includes('xiaohongshu.com') || host.includes('xhslink.com'); }
+
+    function getPlatform() {
+        if (isBilibili()) return 'bilibili';
+        if (isDouyin()) return 'douyin';
+        if (isXiaohongshu()) return 'xiaohongshu';
+        return 'generic';
+    }
+
+    function detectGenericVideos() {
+        mediaList = [];
         document.querySelectorAll('video').forEach((v, i) => {
             const src = v.src || v.currentSrc || v.querySelector('source')?.src;
-            if (src) videos.push({ i, src, blob: src.startsWith('blob:'), w: v.videoWidth, h: v.videoHeight });
+            if (src) mediaList.push({ type: 'video', src, blob: src.startsWith('blob:'), w: v.videoWidth, h: v.videoHeight, i: mediaList.length });
         });
-        return videos;
+        return mediaList;
     }
 
-    function getPanelHtml() {
-        detectVideos();
-        if (!videos.length) return '<div style="text-align:center;padding:40px;color:#9ca3af"><div style="font-size:48px;margin-bottom:16px">🎬</div><div>' + T.noVideo + '</div></div>';
-
-        return '<div style="color:#6b7280;font-size:13px;margin-bottom:16px">' + T.detected.replace('{0}', videos.length) + '</div>' +
-            videos.map((v, i) => '<div style="background:#f9fafb;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">' +
-                '<div style="width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:20px">🎬</div>' +
-                '<div style="flex:1"><div style="font-weight:600;color:#1f2937">' + T.video + ' ' + (i+1) + '</div><div style="font-size:12px;color:#9ca3af">' + v.w + 'x' + v.h + ' · ' + (v.blob ? T.blob : 'MP4') + '</div></div>' +
-                '<button onclick="__wtaDownloadVideo(' + i + ')" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer">' + T.download + '</button></div>'
-            ).join('');
-    }
-
-    window.__wtaDownloadVideo = function(i) {
-        const v = videos[i];
-        if (!v) return;
-        if (v.blob) { __WTA_MODULE_UI__.toast(T.blobNotSupported); return; }
-        if (typeof NativeBridge !== 'undefined' && NativeBridge.downloadVideo) {
-            NativeBridge.downloadVideo(v.src, 'video_' + Date.now() + '.mp4');
-            __WTA_MODULE_UI__.toast(T.downloading);
-            __WTA_MODULE_UI__.closePanel();
-        }
-    };
-
-    function register() {
-        if (typeof __WTA_MODULE_UI__ === 'undefined') { setTimeout(register, 100); return; }
-        __WTA_MODULE_UI__.register({ ...MODULE, uiConfig: (typeof __MODULE_UI_CONFIG__ !== 'undefined' ? __MODULE_UI_CONFIG__ : undefined), runMode: (typeof __MODULE_RUN_MODE__ !== 'undefined' ? __MODULE_RUN_MODE__ : 'INTERACTIVE'), onAction: c => c.innerHTML = getPanelHtml() });
-    }
-
-    document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', register) : register();
-})();
-"""
-
-    private const val BILIBILI_EXTRACTOR_CODE = """
-(function() {
-    'use strict';
-    if (!location.hostname.includes('bilibili.com')) return;
-
-    // 多语言支持
-    const LANG = (navigator.language || 'zh').toLowerCase().startsWith('ar') ? 'ar' :
-                 (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
-    const I18N = {
-        zh: { name: 'B站视频', unknown: '未知视频', noInfo: '未找到视频信息', waitLoad: '请等待视频加载', quality: '画质', dlVideo: '下载视频流', dlAudio: '下载音频流', tip: '提示：B站视频和音频分离，需用工具合并', downloading: '开始下载', video: '视频', audio: '音频', copied: '链接已复制' },
-        en: { name: 'Bilibili Video', unknown: 'Unknown video', noInfo: 'No video info found', waitLoad: 'Please wait for video to load', quality: 'Quality', dlVideo: 'Download Video', dlAudio: 'Download Audio', tip: 'Tip: Bilibili separates video and audio, merge with tools', downloading: 'Downloading', video: 'video', audio: 'audio', copied: 'Link copied' },
-        ar: { name: 'فيديو بيليبيلي', unknown: 'فيديو غير معروف', noInfo: 'لم يتم العثور على معلومات', waitLoad: 'يرجى انتظار تحميل الفيديو', quality: 'الجودة', dlVideo: 'تحميل الفيديو', dlAudio: 'تحميل الصوت', tip: 'تلميح: بيليبيلي يفصل الفيديو والصوت، تحتاج أداة للدمج', downloading: 'جاري التحميل', video: 'فيديو', audio: 'صوت', copied: 'تم نسخ الرابط' }
-    };
-    const T = I18N[LANG] || I18N.en;
-
-    const MODULE = { id: (typeof __MODULE_INFO__ !== 'undefined' ? __MODULE_INFO__.id : 'bilibili'), name: T.name, icon: '📺', color: '#fb7299' };
     const QN = { 127:'8K', 120:'4K', 116:'1080P60', 80:'1080P', 64:'720P', 32:'480P' };
 
-    function getInfo() {
+    function getBilibiliInfo() {
         const p = window.__playinfo__;
         if (!p?.data) return null;
         const d = p.data, r = { video: null, audio: null, quality: '' };
@@ -295,184 +201,170 @@ object BuiltInModules {
         return r;
     }
 
-    function getPanelHtml() {
-        const info = getInfo();
-        const title = document.querySelector('h1.video-title, .video-title')?.textContent || T.unknown;
-        if (!info?.video && !info?.audio) return '<div style="text-align:center;padding:40px;color:#9ca3af"><div style="font-size:48px;margin-bottom:16px">📺</div><div>' + T.noInfo + '</div><div style="font-size:12px;margin-top:8px">' + T.waitLoad + '</div></div>';
-
-        let html = '<div style="margin-bottom:20px"><div style="font-size:15px;font-weight:600;color:#1f2937;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + title + '</div><div style="font-size:13px;color:#fb7299">' + T.quality + ': ' + info.quality + '</div></div>';
-        if (info.video) html += '<button onclick="__wtaBiliDL(\'video\')" style="width:100%;background:linear-gradient(135deg,#fb7299,#fc9db8);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>⬇️</span> ' + T.dlVideo + '</button>';
-        if (info.audio) html += '<button onclick="__wtaBiliDL(\'audio\')" style="width:100%;background:linear-gradient(135deg,#23ade5,#5bc0de);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>🎵</span> ' + T.dlAudio + '</button>';
-        html += '<div style="margin-top:16px;padding:12px;background:#fef3f6;border-radius:8px;font-size:12px;color:#9ca3af">' + T.tip + '</div>';
-        return html;
-    }
-
-    window.__wtaBiliDL = function(type) {
-        const info = getInfo();
-        const url = type === 'video' ? info?.video : info?.audio;
-        if (!url) return;
-        const fn = 'bilibili_' + type + '_' + Date.now() + (type === 'video' ? '.m4s' : '.m4a');
-        if (typeof NativeBridge !== 'undefined' && NativeBridge.downloadWithHeaders) {
-            NativeBridge.downloadWithHeaders(url, fn, JSON.stringify({ Referer: 'https://www.bilibili.com' }));
-            __WTA_MODULE_UI__.toast(T.downloading + (type === 'video' ? T.video : T.audio) + '...');
-            __WTA_MODULE_UI__.closePanel();
-        } else { navigator.clipboard?.writeText(url); __WTA_MODULE_UI__.toast(T.copied); }
-    };
-
-    function register() {
-        if (typeof __WTA_MODULE_UI__ === 'undefined') { setTimeout(register, 100); return; }
-        __WTA_MODULE_UI__.register({ ...MODULE, uiConfig: (typeof __MODULE_UI_CONFIG__ !== 'undefined' ? __MODULE_UI_CONFIG__ : undefined), runMode: (typeof __MODULE_RUN_MODE__ !== 'undefined' ? __MODULE_RUN_MODE__ : 'INTERACTIVE'), onAction: c => c.innerHTML = getPanelHtml() });
-    }
-    setTimeout(register, 1000);
-})();
-"""
-
-    private const val DOUYIN_EXTRACTOR_CODE = """
-(function() {
-    'use strict';
-    if (!location.hostname.includes('douyin.com')) return;
-
-    // 多语言支持
-    const LANG = (navigator.language || 'zh').toLowerCase().startsWith('ar') ? 'ar' :
-                 (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
-    const I18N = {
-        zh: { name: '抖音视频', noVideo: '未找到视频', waitLoad: '请等待视频加载', default: '抖音视频', dlNoWm: '下载无水印视频', tip: '提示：下载的是无水印版本', downloading: '开始下载...', copied: '链接已复制' },
-        en: { name: 'Douyin Video', noVideo: 'No video found', waitLoad: 'Please wait for video to load', default: 'Douyin Video', dlNoWm: 'Download without watermark', tip: 'Tip: Downloading watermark-free version', downloading: 'Downloading...', copied: 'Link copied' },
-        ar: { name: 'فيديو دوين', noVideo: 'لم يتم العثور على فيديو', waitLoad: 'يرجى انتظار تحميل الفيديو', default: 'فيديو دوين', dlNoWm: 'تحميل بدون علامة مائية', tip: 'تلميح: تحميل بدون علامة مائية', downloading: 'جاري التحميل...', copied: 'تم نسخ الرابط' }
-    };
-    const T = I18N[LANG] || I18N.en;
-
-    const MODULE = { id: (typeof __MODULE_INFO__ !== 'undefined' ? __MODULE_INFO__.id : 'douyin'), name: T.name, icon: '🎵', color: '#fe2c55' };
-
-    function findVideoData(obj, depth = 0) {
+    function findDouyinVideoData(obj, depth = 0) {
         if (depth > 10 || !obj || typeof obj !== 'object') return null;
         if (obj.video?.play_addr) {
             const url = obj.video.play_addr.url_list?.[0]?.replace('playwm', 'play').replace(/watermark=\d+/, 'watermark=0');
             return { id: obj.aweme_id || obj.id, desc: obj.desc || '', url, author: obj.author?.nickname || '' };
         }
-        if (obj.aweme_detail) return findVideoData(obj.aweme_detail, depth + 1);
-        if (obj.aweme_list?.[0]) return findVideoData(obj.aweme_list[0], depth + 1);
-        for (const k of Object.keys(obj)) { const r = findVideoData(obj[k], depth + 1); if (r) return r; }
+        if (obj.aweme_detail) return findDouyinVideoData(obj.aweme_detail, depth + 1);
+        if (obj.aweme_list?.[0]) return findDouyinVideoData(obj.aweme_list[0], depth + 1);
+        for (const k of Object.keys(obj)) { const r = findDouyinVideoData(obj[k], depth + 1); if (r) return r; }
         return null;
     }
 
-    function getVideoData() {
+    function getDouyinVideoData() {
         try {
-            if (window._ROUTER_DATA) { const r = findVideoData(window._ROUTER_DATA); if (r) return r; }
-            if (window.__INITIAL_STATE__) { const r = findVideoData(window.__INITIAL_STATE__); if (r) return r; }
-        } catch (e) { /* video data extraction failed */ }
+            if (window._ROUTER_DATA) { const r = findDouyinVideoData(window._ROUTER_DATA); if (r) return r; }
+            if (window.__INITIAL_STATE__) { const r = findDouyinVideoData(window.__INITIAL_STATE__); if (r) return r; }
+        } catch (e) {}
         return null;
     }
 
-    function getPanelHtml() {
-        const data = getVideoData();
-        if (!data?.url) return '<div style="text-align:center;padding:40px;color:#9ca3af"><div style="font-size:48px;margin-bottom:16px">🎵</div><div>' + T.noVideo + '</div><div style="font-size:12px;margin-top:8px">' + T.waitLoad + '</div></div>';
-
-        return '<div style="margin-bottom:20px"><div style="font-size:15px;font-weight:600;color:#1f2937;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + (data.desc || T.default) + '</div>' +
-            '<div style="font-size:13px;color:#9ca3af">@' + data.author + '</div></div>' +
-            '<button onclick="__wtaDouyinDL()" style="width:100%;background:linear-gradient(135deg,#fe2c55,#ff6b81);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>⬇️</span> ' + T.dlNoWm + '</button>' +
-            '<div style="margin-top:16px;padding:12px;background:#fff1f3;border-radius:8px;font-size:12px;color:#9ca3af">' + T.tip + '</div>';
-    }
-
-    window.__wtaDouyinDL = function() {
-        const data = getVideoData();
-        if (!data?.url) return;
-        if (typeof NativeBridge !== 'undefined' && NativeBridge.downloadVideo) {
-            NativeBridge.downloadVideo(data.url, 'douyin_' + (data.id || Date.now()) + '.mp4');
-            __WTA_MODULE_UI__.toast(T.downloading);
-            __WTA_MODULE_UI__.closePanel();
-        } else { navigator.clipboard?.writeText(data.url); __WTA_MODULE_UI__.toast(T.copied); }
-    };
-
-    function register() {
-        if (typeof __WTA_MODULE_UI__ === 'undefined') { setTimeout(register, 100); return; }
-        __WTA_MODULE_UI__.register({ ...MODULE, uiConfig: (typeof __MODULE_UI_CONFIG__ !== 'undefined' ? __MODULE_UI_CONFIG__ : undefined), runMode: (typeof __MODULE_RUN_MODE__ !== 'undefined' ? __MODULE_RUN_MODE__ : 'INTERACTIVE'), onAction: c => c.innerHTML = getPanelHtml() });
-    }
-    setTimeout(register, 1000);
-})();
-"""
-
-    private const val XIAOHONGSHU_EXTRACTOR_CODE = """
-(function() {
-    'use strict';
-    if (!location.hostname.includes('xiaohongshu.com') && !location.hostname.includes('xhslink.com')) return;
-
-    // 多语言支持
-    const LANG = (navigator.language || 'zh').toLowerCase().startsWith('ar') ? 'ar' :
-                 (navigator.language || 'zh').toLowerCase().startsWith('zh') ? 'zh' : 'en';
-    const I18N = {
-        zh: { name: '小红书', noMedia: '未检测到媒体', detected: '检测到 {0} 张图片，{1} 个视频', dlAllImg: '下载全部图片', dlAllVid: '下载全部视频', image: '图片', video: '视频', download: '下载', downloading: '开始下载...', dlBatch: '开始下载 {0} 个{1}...' },
-        en: { name: 'Xiaohongshu', noMedia: 'No media detected', detected: '{0} images, {1} videos detected', dlAllImg: 'Download all images', dlAllVid: 'Download all videos', image: 'Image', video: 'Video', download: 'Download', downloading: 'Downloading...', dlBatch: 'Downloading {0} {1}...' },
-        ar: { name: 'شياوهونغشو', noMedia: 'لم يتم الكشف عن وسائط', detected: '{0} صورة، {1} فيديو', dlAllImg: 'تحميل كل الصور', dlAllVid: 'تحميل كل الفيديوهات', image: 'صورة', video: 'فيديو', download: 'تحميل', downloading: 'جاري التحميل...', dlBatch: 'جاري تحميل {0} {1}...' }
-    };
-    const T = I18N[LANG] || I18N.en;
-
-    const MODULE = { id: (typeof __MODULE_INFO__ !== 'undefined' ? __MODULE_INFO__.id : 'xiaohongshu'), name: T.name, icon: '📕', color: '#ff2442' };
-    let mediaList = [];
-
-    function detectMedia() {
+    function detectXiaohongshuMedia() {
         mediaList = [];
-        document.querySelectorAll('img[src*="xhscdn"], img[src*="xiaohongshu"]').forEach((img, i) => {
+        document.querySelectorAll('img[src*="xhscdn"], img[src*="xiaohongshu"]').forEach((img) => {
             let src = img.src.split('?')[0];
             if (src.includes('avatar') || img.width < 100) return;
             if (!mediaList.find(m => m.src === src)) mediaList.push({ type: 'image', src, i: mediaList.length });
         });
-        document.querySelectorAll('video').forEach((v, i) => {
+        document.querySelectorAll('video').forEach((v) => {
             const src = v.src || v.querySelector('source')?.src;
             if (src && !mediaList.find(m => m.src === src)) mediaList.push({ type: 'video', src, i: mediaList.length });
         });
         return mediaList;
     }
 
+    function downloadItem(url, filename, headers) {
+        if (typeof NativeBridge !== 'undefined') {
+            if (headers && NativeBridge.downloadWithHeaders) {
+                NativeBridge.downloadWithHeaders(url, filename, JSON.stringify(headers));
+            } else if (NativeBridge.downloadVideo) {
+                NativeBridge.downloadVideo(url, filename);
+            }
+            __WTA_MODULE_UI__.toast(T.downloading);
+        } else if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(url);
+            __WTA_MODULE_UI__.toast(T.copied);
+        }
+    }
+
     function getPanelHtml() {
-        detectMedia();
-        if (!mediaList.length) return '<div style="text-align:center;padding:40px;color:#9ca3af"><div style="font-size:48px;margin-bottom:16px">📕</div><div>' + T.noMedia + '</div></div>';
+        const platform = getPlatform();
 
-        const images = mediaList.filter(m => m.type === 'image');
-        const videos = mediaList.filter(m => m.type === 'video');
-
-        let html = '<div style="color:#6b7280;font-size:13px;margin-bottom:16px">' + T.detected.replace('{0}', images.length).replace('{1}', videos.length) + '</div>';
-
-        if (images.length) {
-            html += '<button onclick="__wtaXhsDLAll(\'image\')" style="width:100%;background:linear-gradient(135deg,#ff2442,#ff6b7a);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🖼️</span> ' + T.dlAllImg + ' (' + images.length + ')</button>';
-        }
-        if (videos.length) {
-            html += '<button onclick="__wtaXhsDLAll(\'video\')" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🎬</span> ' + T.dlAllVid + ' (' + videos.length + ')</button>';
+        if (platform === 'bilibili') {
+            const info = getBilibiliInfo();
+            const title = document.querySelector('h1.video-title, .video-title')?.textContent || T.video;
+            if (!info?.video && !info?.audio) return noMediaPanel('📺');
+            let html = '<div style="margin-bottom:20px"><div style="font-size:15px;font-weight:600;color:#1f2937;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(title) + '</div><div style="font-size:13px;color:#fb7299">' + T.quality + ': ' + info.quality + '</div></div>';
+            if (info.video) html += '<button onclick="__wtaMediaDL(\'bili_video\')" style="width:100%;background:linear-gradient(135deg,#fb7299,#fc9db8);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>⬇️</span> ' + T.dlVideo + '</button>';
+            if (info.audio) html += '<button onclick="__wtaMediaDL(\'bili_audio\')" style="width:100%;background:linear-gradient(135deg,#23ade5,#5bc0de);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>🎵</span> ' + T.dlAudio + '</button>';
+            html += '<div style="margin-top:16px;padding:12px;background:#fef3f6;border-radius:8px;font-size:12px;color:#9ca3af">' + T.bilibiliTip + '</div>';
+            return html;
         }
 
-        html += '<div style="margin-top:8px;max-height:200px;overflow-y:auto">';
-        mediaList.forEach((m, i) => {
-            html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px">' +
-                '<span style="font-size:20px">' + (m.type === 'image' ? '🖼️' : '🎬') + '</span>' +
-                '<div style="flex:1;font-size:13px;color:#4b5563;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (m.type === 'image' ? T.image : T.video) + ' ' + (i+1) + '</div>' +
-                '<button onclick="__wtaXhsDL(' + i + ')" style="background:#f3f4f6;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer">' + T.download + '</button></div>';
+        if (platform === 'douyin') {
+            const data = getDouyinVideoData();
+            if (!data?.url) return noMediaPanel('🎵');
+            return '<div style="margin-bottom:20px"><div style="font-size:15px;font-weight:600;color:#1f2937;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + escapeHtml(data.desc || T.video) + '</div><div style="font-size:13px;color:#9ca3af">@' + escapeHtml(data.author) + '</div></div><button onclick="__wtaMediaDL(\'douyin\')" style="width:100%;background:linear-gradient(135deg,#fe2c55,#ff6b81);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span>⬇️</span> ' + T.dlNoWm + '</button>';
+        }
+
+        if (platform === 'xiaohongshu') {
+            detectXiaohongshuMedia();
+            if (!mediaList.length) return noMediaPanel('📕');
+            const images = mediaList.filter(m => m.type === 'image');
+            const videos = mediaList.filter(m => m.type === 'video');
+            let html = '<div style="color:#6b7280;font-size:13px;margin-bottom:16px">' + T.detected2.replace('{0}', images.length).replace('{1}', videos.length) + '</div>';
+            if (images.length) html += '<button onclick="__wtaMediaDL(\'xhs_all_image\')" style="width:100%;background:linear-gradient(135deg,#ff2442,#ff6b7a);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🖼️</span> ' + T.dlAllImg + ' (' + images.length + ')</button>';
+            if (videos.length) html += '<button onclick="__wtaMediaDL(\'xhs_all_video\')" style="width:100%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:8px"><span>🎬</span> ' + T.dlAllVid + ' (' + videos.length + ')</button>';
+            html += '<div style="margin-top:8px;max-height:200px;overflow-y:auto">';
+            mediaList.forEach((m, i) => {
+                html += '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px"><span style="font-size:20px">' + (m.type === 'image' ? '🖼️' : '🎬') + '</span><div style="flex:1;font-size:13px;color:#4b5563;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (m.type === 'image' ? T.image : T.video) + ' ' + (i+1) + '</div><button onclick="__wtaMediaDL(\'xhs_' + i + '\')" style="background:#f3f4f6;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer">' + T.download + '</button></div>';
+            });
+            html += '</div>';
+            return html;
+        }
+
+        detectGenericVideos();
+        if (!mediaList.length) return noMediaPanel('🎬');
+        let html = '<div style="color:#6b7280;font-size:13px;margin-bottom:16px">' + T.detected.replace('{0}', mediaList.length) + '</div>';
+        mediaList.forEach((v, i) => {
+            html += '<div style="background:#f9fafb;border-radius:12px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px"><div style="width:48px;height:48px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:20px">🎬</div><div style="flex:1"><div style="font-weight:600;color:#1f2937">' + T.video + ' ' + (i+1) + '</div><div style="font-size:12px;color:#9ca3af">' + (v.w || '?') + 'x' + (v.h || '?') + ' · ' + (v.blob ? T.blob : 'MP4') + '</div></div><button onclick="__wtaMediaDL(\'generic_' + i + '\')" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;cursor:pointer">' + T.download + '</button></div>';
         });
-        html += '</div>';
         return html;
     }
 
-    window.__wtaXhsDL = function(i) {
-        const m = mediaList[i];
-        if (!m) return;
-        const ext = m.type === 'image' ? '.jpg' : '.mp4';
-        if (typeof NativeBridge !== 'undefined' && NativeBridge.downloadVideo) {
-            NativeBridge.downloadVideo(m.src, 'xhs_' + m.type + '_' + Date.now() + ext);
-            __WTA_MODULE_UI__.toast(T.downloading);
-        }
-    };
+    function noMediaPanel(icon) {
+        return '<div style="text-align:center;padding:40px;color:#9ca3af"><div style="font-size:48px;margin-bottom:16px">' + icon + '</div><div>' + T.noMedia + '</div></div>';
+    }
 
-    window.__wtaXhsDLAll = function(type) {
-        const items = mediaList.filter(m => m.type === type);
-        items.forEach((m, i) => setTimeout(() => __wtaXhsDL(mediaList.indexOf(m)), i * 500));
-        __WTA_MODULE_UI__.toast(T.dlBatch.replace('{0}', items.length).replace('{1}', type === 'image' ? T.image : T.video));
-        __WTA_MODULE_UI__.closePanel();
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, function(ch) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+        });
+    }
+
+    window.__wtaMediaDL = function(action) {
+        const platform = getPlatform();
+
+        if (action.startsWith('bili_')) {
+            const info = getBilibiliInfo();
+            const type = action.slice(5);
+            const url = type === 'video' ? info?.video : info?.audio;
+            if (!url) return;
+            const fn = 'bilibili_' + type + '_' + Date.now() + (type === 'video' ? '.m4s' : '.m4a');
+            downloadItem(url, fn, { Referer: 'https://www.bilibili.com' });
+            __WTA_MODULE_UI__.closePanel();
+            return;
+        }
+
+        if (action === 'douyin') {
+            const data = getDouyinVideoData();
+            if (!data?.url) return;
+            downloadItem(data.url, 'douyin_' + (data.id || Date.now()) + '.mp4');
+            __WTA_MODULE_UI__.closePanel();
+            return;
+        }
+
+        if (action.startsWith('xhs_')) {
+            if (action === 'xhs_all_image' || action === 'xhs_all_video') {
+                const type = action === 'xhs_all_image' ? 'image' : 'video';
+                const items = mediaList.filter(m => m.type === type);
+                items.forEach((m, i) => setTimeout(() => {
+                    const ext = type === 'image' ? '.jpg' : '.mp4';
+                    downloadItem(m.src, 'xhs_' + type + '_' + (Date.now() + i) + ext);
+                }, i * 500));
+                __WTA_MODULE_UI__.toast(T.downloading);
+                __WTA_MODULE_UI__.closePanel();
+                return;
+            }
+            const idx = parseInt(action.slice(4));
+            const m = mediaList[idx];
+            if (!m) return;
+            const ext = m.type === 'image' ? '.jpg' : '.mp4';
+            downloadItem(m.src, 'xhs_' + m.type + '_' + Date.now() + ext);
+            return;
+        }
+
+        if (action.startsWith('generic_')) {
+            const idx = parseInt(action.slice(8));
+            const v = mediaList[idx];
+            if (!v) return;
+            if (v.blob) { __WTA_MODULE_UI__.toast(T.blobNotSupported); return; }
+            downloadItem(v.src, 'video_' + Date.now() + '.mp4');
+            __WTA_MODULE_UI__.closePanel();
+            return;
+        }
     };
 
     function register() {
         if (typeof __WTA_MODULE_UI__ === 'undefined') { setTimeout(register, 100); return; }
         __WTA_MODULE_UI__.register({ ...MODULE, uiConfig: (typeof __MODULE_UI_CONFIG__ !== 'undefined' ? __MODULE_UI_CONFIG__ : undefined), runMode: (typeof __MODULE_RUN_MODE__ !== 'undefined' ? __MODULE_RUN_MODE__ : 'INTERACTIVE'), onAction: c => c.innerHTML = getPanelHtml() });
     }
-    setTimeout(register, 1000);
+
+    const delay = isBilibili() || isDouyin() || isXiaohongshu() ? 1000 : 0;
+    if (delay) setTimeout(register, delay);
+    else document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', register) : register();
 })();
 """
 

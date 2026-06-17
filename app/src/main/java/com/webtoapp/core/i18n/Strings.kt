@@ -16610,6 +16610,16 @@ object Strings {
         AppLanguage.ARABIC -> "تمرير لعرض معلومات العنصر"
     }
 
+    val builtinMediaDownloader: String get() = when (lang) {
+        AppLanguage.CHINESE -> "媒体下载"
+        AppLanguage.ENGLISH -> "Media Download"
+        AppLanguage.ARABIC -> "تحميل الوسائط"
+    }
+    val builtinMediaDownloaderDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "自动检测并下载网页视频、图片。支持B站视频/音频流、抖音无水印视频、小红书图片/视频，以及通用网页视频检测"
+        AppLanguage.ENGLISH -> "Auto-detect and download web videos and images. Supports Bilibili video/audio streams, Douyin watermark-free videos, Xiaohongshu images/videos, and generic web video detection"
+        AppLanguage.ARABIC -> "الكشف التلقائي وتحميل فيديوهات وصور الويب. يدعم بيليبيلي ودوين وشياوهونغشو والكشف العام عن الفيديو"
+    }
     val builtinVideoDownloader: String get() = when (lang) {
         AppLanguage.CHINESE -> "视频下载"
         AppLanguage.ENGLISH -> "Video Download"
