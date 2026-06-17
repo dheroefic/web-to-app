@@ -2205,7 +2205,15 @@ class WebViewManager(
                         val errorHtml = manager.generateErrorPage(errorCode, description, rawDescription, failedUrl)
                         if (errorHtml != null) {
                             lastFailedUrl = failedUrl
-                            view.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", failedUrl)
+                            val settings = view.settings
+                            val savedAllowFileAccess = settings.allowFileAccess
+                            if (!savedAllowFileAccess) {
+                                settings.allowFileAccess = true
+                            }
+                            view.loadDataWithBaseURL("file:///", errorHtml, "text/html", "UTF-8", failedUrl)
+                            if (!savedAllowFileAccess) {
+                                view.post { settings.allowFileAccess = false }
+                            }
                             AppLogger.d("WebViewManager", "Custom error page loaded for: $failedUrl")
 
                             callbacks.onError(errorCode, description)
@@ -2254,7 +2262,15 @@ class WebViewManager(
                         val errorHtml = manager.generateErrorPage(statusCode, description, failedUrl)
                         if (errorHtml != null) {
                             lastFailedUrl = failedUrl
-                            view.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", failedUrl)
+                            val settings = view.settings
+                            val savedAllowFileAccess = settings.allowFileAccess
+                            if (!savedAllowFileAccess) {
+                                settings.allowFileAccess = true
+                            }
+                            view.loadDataWithBaseURL("file:///", errorHtml, "text/html", "UTF-8", failedUrl)
+                            if (!savedAllowFileAccess) {
+                                view.post { settings.allowFileAccess = false }
+                            }
                             AppLogger.d("WebViewManager", "Custom HTTP error page loaded for: $failedUrl, code=$statusCode")
                             callbacks.onError(statusCode, description)
                             return

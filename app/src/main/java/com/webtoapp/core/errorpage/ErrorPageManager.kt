@@ -514,10 +514,16 @@ function startGame(){
             ?.replace("\"", "&quot;")
             ?: ""
 
-        val mediaHtml = if (isVideo) {
-            """<video src="$mediaPath" autoplay loop muted playsinline style="max-width:80%;max-height:50vh;border-radius:12px;"></video>"""
+        val mediaSrc = resolveMediaSrc(mediaPath, isVideo)
+
+        val mediaHtml = if (mediaSrc != null) {
+            if (isVideo) {
+                """<video src="$mediaSrc" autoplay loop muted playsinline style="max-width:80%;max-height:50vh;border-radius:12px;"></video>"""
+            } else {
+                """<img src="$mediaSrc" style="max-width:80%;max-height:50vh;border-radius:12px;object-fit:contain;" alt=""/>"""
+            }
         } else {
-            """<img src="$mediaPath" style="max-width:80%;max-height:50vh;border-radius:12px;object-fit:contain;" alt=""/>"""
+            """<div style="color:#9aa0a6;font-size:14px;padding:40px;">Media unavailable</div>"""
         }
 
         return """
@@ -551,6 +557,37 @@ body{
 </body>
 </html>
         """.trimIndent()
+    }
+
+    private fun resolveMediaSrc(mediaPath: String, isVideo: Boolean): String? {
+        if (mediaPath.isBlank()) return null
+
+        if (mediaPath.startsWith("data:") || mediaPath.startsWith("http://") ||
+            mediaPath.startsWith("https://") || mediaPath.startsWith("file://")) {
+            return mediaPath
+        }
+
+        return try {
+            val file = java.io.File(mediaPath)
+            if (!file.exists() || !file.canRead()) return null
+
+            if (!isVideo && file.length() <= MAX_BASE64_MEDIA_SIZE) {
+                val mime = "image/png"
+                val base64 = android.util.Base64.encodeToString(
+                    file.readBytes(),
+                    android.util.Base64.NO_WRAP
+                )
+                "data:$mime;base64,$base64"
+            } else {
+                "file://${file.absolutePath}"
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private companion object {
+        private const val MAX_BASE64_MEDIA_SIZE = 2L * 1024 * 1024
     }
 
     private fun renderDiagnosticCard(diag: NetworkErrorDiagnostics.Diagnostic): String {

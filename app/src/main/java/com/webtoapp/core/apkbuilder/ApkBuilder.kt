@@ -490,6 +490,8 @@ class ApkBuilder(private val context: Context) {
                 phpAppProjectDir,
                 pythonAppProjectDir,
                 goAppProjectDir,
+                errorPageMediaPath = webApp.webViewConfig.errorPageConfig.customMediaPath
+                    ?.takeIf { it.isNotBlank() && !it.startsWith("data:") && !it.startsWith("http") && !it.startsWith("file://") },
                 perfConfig
             ) { progress, stageMessage ->
                 if (stageMessage.isNotBlank()) {
@@ -745,6 +747,7 @@ class ApkBuilder(private val context: Context) {
         phpAppProjectDir: File? = null,
         pythonAppProjectDir: File? = null,
         goAppProjectDir: File? = null,
+        errorPageMediaPath: String? = null,
         perfConfig: com.webtoapp.core.linux.PerformanceOptimizer.OptimizeConfig? = null,
         onProgress: (Int, String) -> Unit
     ) {
@@ -940,6 +943,10 @@ class ApkBuilder(private val context: Context) {
                     addSplashMediaToAssets(zipOut, splashMediaPath, config.splashType, assetEncryptor, encryptionConfig)
                 } else {
                     AppLogger.w("ApkBuilder", "Skipping splash embed: splashEnabled=${config.splashEnabled}, splashMediaPath=$splashMediaPath")
+                }
+
+                if (errorPageMediaPath != null) {
+                    addErrorPageMediaToAssets(zipOut, errorPageMediaPath, assetEncryptor, encryptionConfig)
                 }
 
                 if (config.statusBarBackgroundType == "IMAGE" && !config.statusBarBackgroundImage.isNullOrEmpty()) {
@@ -1169,6 +1176,49 @@ class ApkBuilder(private val context: Context) {
             }
         } catch (e: Exception) {
             AppLogger.e("ApkBuilder", "Failed to embed splash media: ${e.message}", e)
+        }
+    }
+
+    private fun addErrorPageMediaToAssets(
+        zipOut: ZipOutputStream,
+        mediaPath: String,
+        encryptor: AssetEncryptor? = null,
+        encryptionConfig: EncryptionConfig = EncryptionConfig.DISABLED
+    ) {
+        AppLogger.d("ApkBuilder", "Preparing to embed error page media: path=$mediaPath, encrypt=${encryptionConfig.enabled}")
+
+        val mediaFile = File(mediaPath)
+        if (!mediaFile.exists() || !mediaFile.canRead()) {
+            AppLogger.w("ApkBuilder", "Error page media file not accessible: $mediaPath")
+            return
+        }
+
+        val isVideo = mediaPath.endsWith(".mp4") || mediaPath.endsWith(".webm")
+        val extension = if (isVideo) {
+            if (mediaPath.endsWith(".webm")) "webm" else "mp4"
+        } else {
+            "png"
+        }
+        val assetPath = "error_page_media.$extension"
+
+        try {
+            if (encryptionConfig.enabled && encryptor != null) {
+                val mediaBytes = mediaFile.readBytes()
+                val encryptedData = encryptor.encrypt(mediaBytes, assetPath)
+                writeEntryDeflated(zipOut, "assets/${assetPath}.enc", encryptedData)
+                AppLogger.d("ApkBuilder", "Error page media encrypted: assets/${assetPath}.enc (${encryptedData.size} bytes)")
+            } else {
+                val largeFileThreshold = 10 * 1024 * 1024L
+                if (isVideo && mediaFile.length() > largeFileThreshold) {
+                    writeEntryStoredStreaming(zipOut, "assets/$assetPath", mediaFile)
+                } else {
+                    val mediaBytes = mediaFile.readBytes()
+                    writeEntryStoredSimple(zipOut, "assets/$assetPath", mediaBytes)
+                }
+                AppLogger.d("ApkBuilder", "Error page media embedded: assets/$assetPath")
+            }
+        } catch (e: Exception) {
+            AppLogger.e("ApkBuilder", "Failed to embed error page media: ${e.message}", e)
         }
     }
 
@@ -3221,9 +3271,34 @@ private fun WebApp.buildErrorPageBlock(): ErrorPageBlock {
         miniGameType = ep.miniGameType.name,
         autoRetrySeconds = ep.autoRetrySeconds,
         customHtml = ep.customHtml ?: "",
-        customMediaPath = ep.customMediaPath ?: "",
+        customMediaPath = resolveErrorPageMediaPath(ep.customMediaPath),
         retryButtonText = ep.retryButtonText
     )
+}
+
+private fun resolveErrorPageMediaPath(path: String?): String {
+    if (path.isNullOrBlank()) return ""
+    if (path.startsWith("data:") || path.startsWith("http://") ||
+        path.startsWith("https://") || path.startsWith("file://")) return path
+    return try {
+        val file = java.io.File(path)
+        if (!file.exists() || !file.canRead()) return ""
+        val isVideo = path.endsWith(".mp4") || path.endsWith(".webm")
+        if (!isVideo && file.length() <= 2L * 1024 * 1024) {
+            val base64 = android.util.Base64.encodeToString(file.readBytes(), android.util.Base64.NO_WRAP)
+            "data:image/png;base64,$base64"
+        } else {
+            val ext = if (isVideo) {
+                if (path.endsWith(".webm")) "webm" else "mp4"
+            } else {
+                "png"
+            }
+            "file:///android_asset/error_page_media.$ext"
+        }
+    } catch (e: Exception) {
+        AppLogger.w("ApkBuilder", "Failed to resolve error page media: ${e.message}")
+        ""
+    }
 }
 
 private fun WebApp.buildSplashBlock(): SplashBlock = SplashBlock(
