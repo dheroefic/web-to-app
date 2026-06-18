@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updatedAt": "2026-06-17T00:00:00Z",
+  "updatedAt": "2026-06-18T00:00:00Z",
   "modules": [
     {
       "id": "wta-hello-world",
@@ -27,7 +27,7 @@
       "id": "wta-web-tint",
       "path": "web-tint",
       "name": "Web Tint",
-      "description": "Visual filter overlay for any page. Includes night shift (amber blue-light filter), grayscale, high contrast, invert colors, and custom color tint. Adjustable intensity and color temperature. A superset of the former Night Shift module.",
+      "description": "Visual filter overlay for any page. Includes night shift (amber blue-light filter), grayscale, high contrast, invert colors, and custom color tint. Adjustable intensity and color temperature.",
       "icon": "palette",
       "category": "STYLE_MODIFIER",
       "tags": ["theme", "filter", "night-shift", "accessibility", "color"],
@@ -69,7 +69,7 @@
       "id": "wta-selection-actions",
       "path": "selection-actions",
       "name": "Selection Actions",
-      "description": "A floating action bar that appears when you select text on a page. Search (5 engines), copy, open as URL, translate, or share. Fully configurable — choose which actions appear and which search engine to use. A superset of the former Floating Search module.",
+      "description": "A floating action bar that appears when you select text on a page. Search (5 engines), copy, open as URL, translate, or share. Fully configurable — choose which actions appear and which search engine to use.",
       "icon": "text_select_start",
       "category": "INTERACTION",
       "tags": ["search", "selection", "clipboard", "translate", "official"],
@@ -102,69 +102,6 @@
       },
       "runAt": "DOCUMENT_END",
       "permissions": ["DOM_ACCESS", "CSS_INJECT", "STORAGE", "KEYBOARD"],
-      "urlMatches": [
-        { "pattern": "*", "isRegex": false, "exclude": false }
-      ],
-      "hasCss": true
-    },
-    {
-      "id": "wta-force-dark",
-      "path": "force-dark",
-      "name": "Force Dark",
-      "description": "Intelligently force any page into dark mode. Uses CSS color-scheme, smart background inversion, and text color correction — not a simple overlay. Attempts to preserve images, videos, and embedded content while darkening the page chrome.",
-      "icon": "dark_mode",
-      "category": "THEME",
-      "tags": ["dark", "theme", "accessibility", "night"],
-      "version": "1.0.0",
-      "minAppVersion": 33,
-      "author": {
-        "name": "shiaho",
-        "url": "https://github.com/shiaho777"
-      },
-      "runAt": "DOCUMENT_START",
-      "permissions": ["CSS_INJECT", "DOM_ACCESS"],
-      "urlMatches": [
-        { "pattern": "*", "isRegex": false, "exclude": false }
-      ],
-      "hasCss": true
-    },
-    {
-      "id": "wta-element-blocker",
-      "path": "element-blocker",
-      "name": "Element Blocker",
-      "description": "Block annoying page elements — ads, cookie banners, sticky bars, popups, newsletter prompts — using CSS selectors. Add your own rules or use the built-in defaults. Click the panel button to enter picker mode and tap any element to block it permanently on that site.",
-      "icon": "block",
-      "category": "CONTENT_FILTER",
-      "tags": ["adblock", "filter", "cleanup", "css"],
-      "version": "1.0.0",
-      "minAppVersion": 33,
-      "author": {
-        "name": "shiaho",
-        "url": "https://github.com/shiaho777"
-      },
-      "runAt": "DOCUMENT_START",
-      "permissions": ["DOM_ACCESS", "CSS_INJECT", "STORAGE"],
-      "urlMatches": [
-        { "pattern": "*", "isRegex": false, "exclude": false }
-      ],
-      "hasCss": true
-    },
-    {
-      "id": "wta-text-find",
-      "path": "text-find",
-      "name": "Find in Page",
-      "description": "Ctrl+F style in-page search bar. Highlights all matches, navigate with up/down arrows or Enter, shows match count and current position. Supports case-sensitive and regex modes. Opens via the floating panel button.",
-      "icon": "find_in_page",
-      "category": "NAVIGATION",
-      "tags": ["search", "find", "text", "navigation"],
-      "version": "1.0.0",
-      "minAppVersion": 33,
-      "author": {
-        "name": "shiaho",
-        "url": "https://github.com/shiaho777"
-      },
-      "runAt": "DOCUMENT_END",
-      "permissions": ["DOM_ACCESS", "CSS_INJECT", "KEYBOARD"],
       "urlMatches": [
         { "pattern": "*", "isRegex": false, "exclude": false }
       ],
