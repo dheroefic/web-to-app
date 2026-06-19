@@ -384,32 +384,6 @@ object Strings {
         AppLanguage.ENGLISH -> "Import"
         AppLanguage.ARABIC -> "استيراد"
     }
-    val bookmarkExportAll: String get() = when (lang) {
-        AppLanguage.CHINESE -> "导出书签"
-        AppLanguage.ENGLISH -> "Export Bookmarks"
-        AppLanguage.ARABIC -> "تصدير الإشارات المرجعية"
-    }
-    val bookmarkExportEmpty: String get() = when (lang) {
-        AppLanguage.CHINESE -> "没有可导出的网页应用"
-        AppLanguage.ENGLISH -> "No web apps to export"
-        AppLanguage.ARABIC -> "لا توجد تطبيقات ويب للتصدير"
-    }
-    val bookmarkExportSuccess: String get() = when (lang) {
-        AppLanguage.CHINESE -> "已导出 %d 个书签"
-        AppLanguage.ENGLISH -> "%d bookmarks exported"
-        AppLanguage.ARABIC -> "تم تصدير %d إشارة مرجعية"
-    }
-    val bookmarkExportFailed: String get() = when (lang) {
-        AppLanguage.CHINESE -> "书签导出失败"
-        AppLanguage.ENGLISH -> "Bookmark export failed"
-        AppLanguage.ARABIC -> "فشل تصدير الإشارات المرجعية"
-    }
-    val bookmarkExportFailedWithReason: String get() = when (lang) {
-        AppLanguage.CHINESE -> "书签导出失败：%s"
-        AppLanguage.ENGLISH -> "Bookmark export failed: %s"
-        AppLanguage.ARABIC -> "فشل تصدير الإشارات المرجعية: %s"
-    }
-
     val templateExport: String get() = when (lang) {
         AppLanguage.CHINESE -> "导出为模板"
         AppLanguage.ENGLISH -> "Export as Template"
