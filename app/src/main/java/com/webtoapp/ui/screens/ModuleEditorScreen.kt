@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import com.webtoapp.ui.design.WtaBackground
 import com.webtoapp.ui.components.EnhancedElevatedCard
 import com.webtoapp.ui.components.PremiumTextField
+import com.webtoapp.ui.components.WtaCodeEditorDialog
 
 import com.webtoapp.ui.design.WtaSwitch
 import com.webtoapp.ui.design.WtaCapabilityLevel
@@ -49,6 +50,7 @@ import com.webtoapp.ui.design.WtaSettingCard
 import com.webtoapp.ui.design.WtaSettingRow
 import com.webtoapp.ui.design.WtaScreen
 import com.webtoapp.ui.design.WtaRadius
+import com.webtoapp.ui.design.WtaAlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +110,7 @@ fun ModuleEditorScreen(
     var showConfigItemDialog by remember { mutableStateOf(false) }
     var showIconPicker by remember { mutableStateOf(false) }
     var showTemplateDialog by remember { mutableStateOf(false) }
+    var showAdvancedDialog by remember { mutableStateOf(false) }
 
     WtaScreen(
         title = if (moduleId == null) Strings.createModule else Strings.editModule,
@@ -235,30 +238,8 @@ fun ModuleEditorScreen(
                     code = code,
                     onCodeChange = { code = it },
                     cssCode = cssCode,
-                    onCssCodeChange = { cssCode = it }
-                    )
-                }
-            }
-
-            WtaSection(
-                title = Strings.advancedSettings,
-                headerStyle = com.webtoapp.ui.design.WtaSectionHeaderStyle.Hidden,
-                level = WtaCapabilityLevel.Advanced,
-                collapsible = true,
-                initiallyExpanded = false
-            ) {
-                WtaSettingCard {
-                    AdvancedTab(
-                    runAt = runAt,
-                    onRunAtClick = { showRunAtDialog = true },
-                    runMode = runMode,
-                    onRunModeClick = { showRunModeDialog = true },
-                    permissions = permissions,
-                    onPermissionsClick = { showPermissionsDialog = true },
-                    urlMatches = urlMatches,
-                    onUrlMatchesClick = { showUrlMatchDialog = true },
-                    configItems = configItems,
-                    onConfigItemsClick = { showConfigItemDialog = true }
+                    onCssCodeChange = { cssCode = it },
+                    onAdvancedClick = { showAdvancedDialog = true }
                     )
                 }
             }
@@ -695,6 +676,34 @@ fun ModuleEditorScreen(
             onDismiss = { showTemplateDialog = false }
         )
     }
+
+    if (showAdvancedDialog) {
+        WtaAlertDialog(
+            onDismissRequest = { showAdvancedDialog = false },
+            title = Strings.advancedSettings,
+            content = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    AdvancedTab(
+                        runAt = runAt,
+                        onRunAtClick = { showRunAtDialog = true },
+                        runMode = runMode,
+                        onRunModeClick = { showRunModeDialog = true },
+                        permissions = permissions,
+                        onPermissionsClick = { showPermissionsDialog = true },
+                        urlMatches = urlMatches,
+                        onUrlMatchesClick = { showUrlMatchDialog = true },
+                        configItems = configItems,
+                        onConfigItemsClick = { showConfigItemDialog = true }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAdvancedDialog = false }) {
+                    Text(Strings.done)
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1061,10 +1070,12 @@ private fun CodeTab(
     code: String,
     onCodeChange: (String) -> Unit,
     cssCode: String,
-    onCssCodeChange: (String) -> Unit
+    onCssCodeChange: (String) -> Unit,
+    onAdvancedClick: () -> Unit
 ) {
     var showJsTab by remember { mutableStateOf(true) }
     var showCodeSnippetSelector by remember { mutableStateOf(false) }
+    var showCodeEditor by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -1072,11 +1083,7 @@ private fun CodeTab(
             .padding(16.dp)
     ) {
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 PremiumFilterChip(
                     selected = showJsTab,
@@ -1096,18 +1103,32 @@ private fun CodeTab(
                 )
             }
 
-            if (showJsTab) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilledTonalButton(
-                    onClick = { showCodeSnippetSelector = true },
+                    onClick = onAdvancedClick,
                     contentPadding = PaddingValues(horizontal = 12.dp)
                 ) {
                     Icon(
-                        Icons.Default.Code,
+                        Icons.Default.Tune,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(Strings.codeSnippets)
+                    Text(Strings.advancedSettings)
+                }
+                if (showJsTab) {
+                    FilledTonalButton(
+                        onClick = { showCodeSnippetSelector = true },
+                        contentPadding = PaddingValues(horizontal = 12.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Code,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(Strings.codeSnippets)
+                    }
                 }
             }
         }
@@ -1165,23 +1186,49 @@ private fun CodeTab(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        PremiumTextField(
-            value = if (showJsTab) code else cssCode,
-            onValueChange = { if (showJsTab) onCodeChange(it) else onCssCodeChange(it) },
+        val currentCode = if (showJsTab) code else cssCode
+        val lineCount = currentCode.count { it == '\n' } + 1
+
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 260.dp),
-            label = { Text(if (showJsTab) Strings.javascriptCode else Strings.cssCode) },
-            placeholder = {
-                Text(
-                    if (showJsTab) Strings.jsCodePlaceholder else Strings.cssCodePlaceholder
-                )
-            },
-            textStyle = LocalTextStyle.current.copy(
-                fontFamily = FontFamily.Monospace,
-                fontSize = 14.sp
+                .clip(RoundedCornerShape(WtaRadius.Button))
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .clickable { showCodeEditor = true }
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                if (currentCode.isNotBlank()) {
+                    Text(
+                        text = currentCode.lineSequence().take(3).joinToString("\n"),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "$lineCount lines · ${currentCode.length} chars",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = if (showJsTab) Strings.jsCodePlaceholder else Strings.cssCodePlaceholder,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        )
+        }
     }
 
     if (showCodeSnippetSelector) {
@@ -1196,6 +1243,19 @@ private fun CodeTab(
                 }
                 onCodeChange(newCode)
             }
+        )
+    }
+
+    if (showCodeEditor) {
+        WtaCodeEditorDialog(
+            language = if (showJsTab) "JavaScript" else "CSS",
+            initialContent = if (showJsTab) code else cssCode,
+            placeholder = if (showJsTab) Strings.jsCodePlaceholder else Strings.cssCodePlaceholder,
+            onSave = { newCode ->
+                if (showJsTab) onCodeChange(newCode) else onCssCodeChange(newCode)
+                showCodeEditor = false
+            },
+            onDismiss = { showCodeEditor = false }
         )
     }
 }
