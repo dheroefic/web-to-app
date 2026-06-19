@@ -29,6 +29,7 @@ object BuiltInModules {
         runAt = ModuleRunTime.DOCUMENT_IDLE,
         permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.DOWNLOAD),
         cssCode = MEDIA_DOWNLOADER_CSS,
+        panelHtml = MEDIA_DOWNLOADER_PANEL_HTML,
         code = MEDIA_DOWNLOADER_CODE,
         runMode = ModuleRunMode.INTERACTIVE,
     )
@@ -47,6 +48,7 @@ object BuiltInModules {
         runAt = ModuleRunTime.DOCUMENT_IDLE,
         permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.MEDIA),
         cssCode = VIDEO_ENHANCER_CSS,
+        panelHtml = VIDEO_ENHANCER_PANEL_HTML,
         code = VIDEO_ENHANCER_CODE,
         runMode = ModuleRunMode.INTERACTIVE,
     )
@@ -65,6 +67,7 @@ object BuiltInModules {
         runAt = ModuleRunTime.DOCUMENT_IDLE,
         permissions = listOf(ModulePermission.DOM_ACCESS, ModulePermission.NETWORK),
         cssCode = WEB_ANALYZER_CSS,
+        panelHtml = WEB_ANALYZER_PANEL_HTML,
         code = WEB_ANALYZER_CODE,
         runMode = ModuleRunMode.INTERACTIVE,
     )
@@ -163,6 +166,12 @@ object BuiltInModules {
         code = CONTENT_ENHANCER_CODE,
         runMode = ModuleRunMode.INTERACTIVE,
     )
+
+    private const val MEDIA_DOWNLOADER_PANEL_HTML = """<div class="wta-media-empty"><div class="wta-media-empty-icon">⬇️</div><div id="wta-media-status">Scanning for media...</div></div>"""
+
+    private const val VIDEO_ENHANCER_PANEL_HTML = """<div class="wta-video-empty"><div class="wta-video-empty-icon">🎬</div><div id="wta-video-status">Looking for video...</div></div>"""
+
+    private const val WEB_ANALYZER_PANEL_HTML = """<div class="wta-analyzer-panel"><div class="wta-analyzer-section"><div class="wta-analyzer-section-title" id="wta-analyzer-status">Analyzing page...</div><div id="wta-analyzer-content"></div></div></div>"""
 
     private const val MEDIA_DOWNLOADER_CSS = """.wta-media-panel{padding:4px}
 .wta-media-header{margin-bottom:16px}
