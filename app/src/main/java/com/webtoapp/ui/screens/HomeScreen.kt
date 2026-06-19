@@ -156,39 +156,15 @@ fun HomeScreen(
     var shareApkFailureReport by remember { mutableStateOf<BuildFailureReport?>(null) }
     var showFabMenu by remember { mutableStateOf(false) }
     var showBatchImportDialog by remember { mutableStateOf(false) }
-    var pendingBookmarkExportApps by remember { mutableStateOf<List<WebApp>>(emptyList()) }
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val bookmarkImportExportService = remember {
+    val batchImportService = remember {
         org.koin.java.KoinJavaComponent.get<com.webtoapp.core.stats.BatchImportService>(
             com.webtoapp.core.stats.BatchImportService::class.java
         )
     }
     val context = LocalContext.current
-    val bookmarkExportLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/html")
-    ) { uri: android.net.Uri? ->
-        uri ?: return@rememberLauncherForActivityResult
-        val appsToExport = pendingBookmarkExportApps
-        scope.launch {
-            try {
-                val html = withContext(Dispatchers.IO) {
-                    bookmarkImportExportService.exportAsBookmarksHtml(appsToExport)
-                }
-                withContext(Dispatchers.IO) {
-                    context.contentResolver.openOutputStream(uri)?.use { output ->
-                        output.write(html.toByteArray(Charsets.UTF_8))
-                    } ?: error(Strings.bookmarkExportFailed)
-                }
-                snackbarHostState.showSnackbar(Strings.bookmarkExportSuccess.replace("%d", appsToExport.size.toString()))
-            } catch (e: Exception) {
-                snackbarHostState.showSnackbar(Strings.bookmarkExportFailedWithReason.replace("%s", e.message ?: "Unknown error"))
-            } finally {
-                pendingBookmarkExportApps = emptyList()
-            }
-        }
-    }
     LaunchedEffect(uiState) {
         when (uiState) {
             is UiState.Success -> {
@@ -411,20 +387,6 @@ fun HomeScreen(
                                 text = { Text(Strings.menuBatchImport) },
                                 onClick = { showMoreMenu = false; showBatchImportDialog = true },
                                 leadingIcon = { Icon(Icons.Outlined.Bookmarks, null, Modifier.size(20.dp)) }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(Strings.bookmarkExportAll) },
-                                onClick = {
-                                    showMoreMenu = false
-                                    val exportableApps = allWebApps.filter { bookmarkImportExportService.isBookmarkExportable(it.url) }
-                                    if (exportableApps.isEmpty()) {
-                                        scope.launch { snackbarHostState.showSnackbar(Strings.bookmarkExportEmpty) }
-                                    } else {
-                                        pendingBookmarkExportApps = exportableApps
-                                        bookmarkExportLauncher.launch("webtoapp_bookmarks.html")
-                                    }
-                                },
-                                leadingIcon = { Icon(Icons.Outlined.FileDownload, null, Modifier.size(20.dp)) }
                             )
                             DropdownMenuItem(
                                 text = { Text(Strings.menuAbout) },
@@ -1060,10 +1022,10 @@ fun HomeScreen(
 
     if (showBatchImportDialog) {
         BatchImportDialog(
-            importService = bookmarkImportExportService,
+            importService = batchImportService,
             onDismiss = { showBatchImportDialog = false },
             onImport = { entries ->
-                bookmarkImportExportService.importEntries(entries)
+                batchImportService.importEntries(entries)
             }
         )
     }
