@@ -1626,6 +1626,7 @@ object ExtensionPanelScript {
         // 注册模块 - 统一通过 FAB 面板管理
         registerModule(moduleInfo) {
             const existing = this.modules.findIndex(m => m.id === moduleInfo.id);
+            console.log('[WTA Panel] registerModule:', moduleInfo.id, 'existing:', existing >= 0, 'onAction:', typeof moduleInfo.onAction, 'panelHtml:', !!moduleInfo.panelHtml);
             if (existing >= 0) {
                 var prev = this.modules[existing];
                 this.modules[existing] = { ...prev, ...moduleInfo };
@@ -1678,6 +1679,7 @@ object ExtensionPanelScript {
 
             // 填充内容
             const contentEl = document.getElementById(`wta-modwin-content-${"$"}{moduleId}`);
+            console.log('[WTA Panel] launchModuleWindow:', moduleId, 'panelHtml:', !!module.panelHtml, 'onAction:', typeof module.onAction, 'keys:', Object.keys(module).join(','));
             if (contentEl && module.panelHtml) {
                 contentEl.innerHTML = module.panelHtml;
                 if (module.onAction) module.onAction(contentEl);
