@@ -5170,7 +5170,8 @@ class WebViewManager(
 
             val nonChromeModules = allModules.filter { module ->
                 module.sourceType != com.webtoapp.core.extension.ModuleSourceType.CHROME_EXTENSION &&
-                module.shouldRegisterInPanel()
+                module.shouldRegisterInPanel() &&
+                !module.builtIn
             }
 
             if (chromeModules.isEmpty() && nonChromeModules.isEmpty()) return
