@@ -2087,7 +2087,10 @@ object PanelScripts {
             if (existing >= 0) {
                 // Update现有模块
                 this.removeModuleUI(this.modules[existing].id);
-                this.modules[existing] = { ...this.modules[existing], ...moduleInfo };
+                var prev = this.modules[existing];
+                this.modules[existing] = { ...prev, ...moduleInfo };
+                if (!this.modules[existing].onAction && prev.onAction) this.modules[existing].onAction = prev.onAction;
+                if (!this.modules[existing].panelHtml && prev.panelHtml) this.modules[existing].panelHtml = prev.panelHtml;
                 finalInfo = this.modules[existing];
             } else {
                 this.modules.push(moduleInfo);

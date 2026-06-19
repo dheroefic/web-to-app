@@ -1614,8 +1614,10 @@ object ExtensionPanelScript {
         registerModule(moduleInfo) {
             const existing = this.modules.findIndex(m => m.id === moduleInfo.id);
             if (existing >= 0) {
-                // Update现有模块
-                this.modules[existing] = { ...this.modules[existing], ...moduleInfo };
+                var prev = this.modules[existing];
+                this.modules[existing] = { ...prev, ...moduleInfo };
+                if (!this.modules[existing].onAction && prev.onAction) this.modules[existing].onAction = prev.onAction;
+                if (!this.modules[existing].panelHtml && prev.panelHtml) this.modules[existing].panelHtml = prev.panelHtml;
             } else {
                 this.modules.push(moduleInfo);
             }
