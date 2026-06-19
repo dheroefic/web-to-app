@@ -751,11 +751,11 @@ data class ExtensionModule(
                         setTimeout(__autoRegister__, 100);
                         return;
                     }
-                    // 检查用户代码是否已经用正确的 uiConfig 注册过
+                    // 检查用户代码是否已经注册过（带 uiConfig.type 或 onAction 均视为有效注册）
                     if (panel.modules) {
                         var existing = panel.modules.find(function(m) { return m.id === __MODULE_INFO__.id; });
-                        if (existing && existing.uiConfig && existing.uiConfig.type) {
-                            // 用户代码已注册且包含 uiConfig，跳过自动注册
+                        if (existing && ((existing.uiConfig && existing.uiConfig.type) || existing.onAction)) {
+                            // 用户代码已注册且包含 uiConfig 或 onAction，跳过自动注册
                             return;
                         }
                     }
