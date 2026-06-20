@@ -616,7 +616,6 @@ object BuiltInModules {
 
         if (action === 'audio') {
             if (!audioUrl) return;
-            var platform = getPlatform();
             var ext = platform === 'bilibili' ? '.m4a' : '.mp3';
             var fn = (audioTitle ? audioTitle.replace(/[^\w\u4e00-\u9fa5]/g, '_').slice(0, 40) : platform + '_audio') + '_' + Date.now() + ext;
             var headers = platform === 'bilibili' ? { Referer: 'https://www.bilibili.com' } : undefined;
@@ -667,7 +666,6 @@ object BuiltInModules {
             const idx = parseInt(action.slice(5));
             const m = mediaList[idx];
             if (!m) return;
-            const platform = getPlatform();
             const prefix = platform === 'instagram' ? 'instagram' : platform === 'facebook' ? 'facebook' : 'tiktok';
             const ext = m.type === 'image' ? '.jpg' : '.mp4';
             downloadItem(m.src, prefix + '_' + m.type + '_' + Date.now() + ext);
