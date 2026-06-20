@@ -1949,6 +1949,10 @@ object ExtensionPanelScript {
             const existingMini = document.getElementById(`wta-modwin-mini-${"$"}{moduleId}`);
             if (existingMini) {
                 existingMini.style.display = 'flex';
+                existingMini.style.transform = 'scale(0)';
+                setTimeout(() => {
+                    existingMini.style.transform = 'scale(1)';
+                }, 10);
                 return;
             }
 
