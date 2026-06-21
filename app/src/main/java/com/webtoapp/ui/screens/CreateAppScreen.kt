@@ -15,6 +15,8 @@ import com.webtoapp.ui.animation.CardExpandTransition
 import com.webtoapp.ui.animation.CardCollapseTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -65,6 +68,7 @@ fun CreateAppScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val hasUnsavedChanges by viewModel.hasUnsavedChanges.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+
     var showDiscardDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
@@ -627,6 +631,7 @@ private fun LegacyAdCapabilityWarningCard() {
 
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun BasicInfoCard(
     editState: EditState,
@@ -636,6 +641,10 @@ fun BasicInfoCard(
     onSelectIconFromLibrary: (String) -> Unit = {}
 ) {
     WtaSettingCard {
+        val coroutineScope = rememberCoroutineScope()
+        val appNameBringIntoViewRequester = remember { BringIntoViewRequester() }
+        val urlBringIntoViewRequester = remember { BringIntoViewRequester() }
+
         Column(
             modifier = Modifier.padding(vertical = WtaSpacing.ContentGap),
             verticalArrangement = Arrangement.spacedBy(WtaSpacing.ContentGap)
@@ -654,7 +663,17 @@ fun BasicInfoCard(
 
                 AppNameTextField(
                     value = editState.name,
-                    onValueChange = onNameChange
+                    onValueChange = onNameChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .bringIntoViewRequester(appNameBringIntoViewRequester)
+                        .onFocusEvent { focusState ->
+                            if (focusState.isFocused) {
+                                coroutineScope.launch {
+                                    appNameBringIntoViewRequester.bringIntoView()
+                                }
+                            }
+                        }
                 )
 
                 when (editState.appType) {
@@ -667,7 +686,16 @@ fun BasicInfoCard(
                             placeholder = { Text("https://example.com") },
                             leadingIcon = { Icon(Icons.Outlined.Link, null) },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .bringIntoViewRequester(urlBringIntoViewRequester)
+                                .onFocusEvent { focusState ->
+                                    if (focusState.isFocused) {
+                                        coroutineScope.launch {
+                                            urlBringIntoViewRequester.bringIntoView()
+                                        }
+                                    }
+                                },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Uri,
                                 imeAction = ImeAction.Done
@@ -745,7 +773,16 @@ fun BasicInfoCard(
                             placeholder = { Text("https://example.com") },
                             leadingIcon = { Icon(Icons.Outlined.Link, null) },
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .bringIntoViewRequester(urlBringIntoViewRequester)
+                                .onFocusEvent { focusState ->
+                                    if (focusState.isFocused) {
+                                        coroutineScope.launch {
+                                            urlBringIntoViewRequester.bringIntoView()
+                                        }
+                                    }
+                                },
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Uri,
                                 imeAction = ImeAction.Done
