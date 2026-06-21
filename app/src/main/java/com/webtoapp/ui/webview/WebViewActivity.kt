@@ -124,8 +124,8 @@ class WebViewActivity : AppCompatActivity() {
     private var pendingPermissionRequest: PermissionRequest? = null
     private var pendingGeolocationOrigin: String? = null
     private var pendingGeolocationCallback: GeolocationPermissions.Callback? = null
-    private var geolocationPolicy: String = "ALWAYS_ASK"
-    private var geolocationAccuracy: String = "COARSE"
+    internal var geolocationPolicy: String = "ALWAYS_ASK"
+    internal var geolocationAccuracy: String = "COARSE"
 
     private var immersiveFullscreenEnabled: Boolean = false
     private var showStatusBarInFullscreen: Boolean = false

@@ -500,11 +500,11 @@ class GeckoViewEngine(
             override fun onMediaPermissionRequest(
                 session: GeckoSession,
                 uri: String,
-                video: Array<out String>?,
-                audio: Array<out String>?,
+                video: Array<GeckoSession.PermissionDelegate.MediaSource>?,
+                audio: Array<GeckoSession.PermissionDelegate.MediaSource>?,
                 callback: GeckoSession.PermissionDelegate.MediaCallback
             ) {
-                callback.grant(video, audio)
+                callback.grant(video?.firstOrNull(), audio?.firstOrNull())
             }
 
             override fun onAndroidPermissionsRequest(
