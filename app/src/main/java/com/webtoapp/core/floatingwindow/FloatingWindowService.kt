@@ -272,7 +272,7 @@ class FloatingWindowService : Service() {
                         )
                         val nativeBridge = com.webtoapp.core.webview.NativeBridge(
                             context = this@FloatingWindowService,
-                            scope = scope,
+                            scope = serviceScope,
                             webViewProvider = { webView },
                             capabilities = capabilities,
                             corsBypass = shellConfig.webViewConfig.enableCorsBypass

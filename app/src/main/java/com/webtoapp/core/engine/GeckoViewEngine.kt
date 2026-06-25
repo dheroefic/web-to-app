@@ -54,39 +54,39 @@ class GeckoViewEngine(
             synchronized(this) {
                 nativeBridgeExtension?.let { return it }
                 val url = "resource://android/assets/web_extensions/wta_native_bridge/"
-                val ext = WebExtension(url)
-                ext.setMessageDelegate(object : WebExtension.MessageDelegate {
-                    override fun onMessage(
-                        nativeApp: String,
-                        message: Any,
-                        sender: WebExtension.MessageSender
-                    ): GeckoResult<Any>? {
-                        val bridge = activeNativeBridge
-                        if (bridge == null) {
-                            return GeckoResult.fromValue(errorJson("REQUEST_FAILED", "Native bridge not ready"))
+                val controller = runtime.webExtensionController
+                val result = controller.installBuiltIn(url)
+                result.then({ ext ->
+                    ext?.setMessageDelegate(object : WebExtension.MessageDelegate {
+                        override fun onMessage(
+                            nativeApp: String,
+                            message: Any,
+                            sender: WebExtension.MessageSender
+                        ): GeckoResult<Any>? {
+                            val bridge = activeNativeBridge
+                            if (bridge == null) {
+                                return GeckoResult.fromValue(errorJson("REQUEST_FAILED", "Native bridge not ready"))
+                            }
+                            val requestJson = when (message) {
+                                is String -> message
+                                else -> message.toString()
+                            }
+                            return try {
+                                val response = bridge.httpRequest(requestJson)
+                                GeckoResult.fromValue(response)
+                            } catch (e: Exception) {
+                                GeckoResult.fromValue(errorJson("REQUEST_FAILED", e.message ?: e::class.java.simpleName))
+                            }
                         }
-                        val requestJson = when (message) {
-                            is String -> message
-                            else -> message.toString()
-                        }
-                        return try {
-                            val response = bridge.httpRequest(requestJson)
-                            GeckoResult.fromValue(response)
-                        } catch (e: Exception) {
-                            GeckoResult.fromValue(errorJson("REQUEST_FAILED", e.message ?: e::class.java.simpleName))
-                        }
-                    }
-                }, NATIVE_BRIDGE_APP)
-                val result = runtime.registerWebExtension(ext)
-                result.then({
-                    AppLogger.d(TAG, "Native bridge WebExtension registered")
+                    }, NATIVE_BRIDGE_APP)
+                    nativeBridgeExtension = ext
+                    AppLogger.d(TAG, "Native bridge WebExtension installed")
                     null
                 }, { throwable ->
-                    AppLogger.e(TAG, "Failed to register native bridge WebExtension", throwable)
+                    AppLogger.e(TAG, "Failed to install native bridge WebExtension", throwable)
                     null
                 })
-                nativeBridgeExtension = ext
-                return ext
+                return null
             }
         }
 

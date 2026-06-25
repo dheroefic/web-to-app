@@ -20,7 +20,7 @@ object ShellWebViewNavigation {
         }
 
         if (useJsHistoryBack) {
-            goBackViaJsHistory(activity, wv)
+            goBackViaJsHistoryBack(activity, wv)
             return
         }
         goBackNative(activity, wv)
