@@ -73,6 +73,22 @@ class ActivationManager(private val context: Context) {
         return remoteVerifier.resolveCachedStartup(appId, request)
     }
 
+    suspend fun reverifyRemoteWithCachedCode(
+        appId: Long,
+        request: RemoteActivationVerifier.RemoteRequest
+    ): ActivationResult {
+        val cachedCode = getCachedRemoteCode(appId)
+        if (cachedCode.isNullOrBlank()) {
+            return ActivationResult.Invalid("")
+        }
+        return verifyRemoteActivation(appId, cachedCode, request)
+    }
+
+    private suspend fun getCachedRemoteCode(appId: Long): String? {
+        return context.activationDataStore.data.first()
+            [stringPreferencesKey("remote_code_$appId")]
+    }
+
     fun buildRemoteRequest(
         verifyUrl: String,
         publicKeyBase64: String,
