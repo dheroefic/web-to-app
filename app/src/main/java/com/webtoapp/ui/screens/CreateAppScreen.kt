@@ -199,9 +199,21 @@ fun CreateAppScreen(
             HideBrowserToolbarCard(
                 enabled = editState.webViewConfig.hideBrowserToolbar,
                 webViewConfig = editState.webViewConfig,
-                onEnabledChange = {
+                onEnabledChange = { enabled ->
                     viewModel.updateEditState {
-                        copy(webViewConfig = webViewConfig.copy(hideBrowserToolbar = it))
+                        if (enabled && !webViewConfig.browserToolbarCustomized) {
+                            copy(webViewConfig = webViewConfig.copy(
+                                hideBrowserToolbar = true,
+                                toolbarShowTitle = false,
+                                toolbarShowUrl = false,
+                                toolbarShowBack = false,
+                                toolbarShowForward = false,
+                                toolbarShowRefresh = false,
+                                browserToolbarCustomized = true
+                            ))
+                        } else {
+                            copy(webViewConfig = webViewConfig.copy(hideBrowserToolbar = enabled))
+                        }
                     }
                 },
                 onWebViewConfigChange = { newConfig ->
