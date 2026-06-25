@@ -81,9 +81,6 @@ class GeckoViewEngine(
                     }, NATIVE_BRIDGE_APP)
                     nativeBridgeExtension = ext
                     AppLogger.d(TAG, "Native bridge WebExtension installed")
-                }.exceptionally { throwable ->
-                    AppLogger.e(TAG, "Failed to install native bridge WebExtension", throwable)
-                    null
                 }
                 return null
             }
