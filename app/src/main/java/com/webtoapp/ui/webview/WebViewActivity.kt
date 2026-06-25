@@ -127,6 +127,8 @@ class WebViewActivity : AppCompatActivity() {
     internal var geolocationPolicy: String = "ALWAYS_ASK"
     internal var geolocationAccuracy: String = "COARSE"
 
+    internal var enableBackStatePreservation: Boolean = false
+
     private var immersiveFullscreenEnabled: Boolean = false
     private var showStatusBarInFullscreen: Boolean = false
     internal var showNavigationBarInFullscreen: Boolean = false
@@ -565,6 +567,8 @@ class WebViewActivity : AppCompatActivity() {
             }
         } else null
 
+        enableBackStatePreservation = previewApp?.webViewConfig?.enableBackStatePreservation ?: false
+
         setContent {
             WebToAppTheme { isDarkTheme ->
 
@@ -673,7 +677,7 @@ class WebViewActivity : AppCompatActivity() {
                                     return@evaluateJavascript
                                 }
 
-                                ShellWebViewNavigation.goBackOrFinish(this@WebViewActivity, wv, useJsHistoryBack = effectiveWebApp.webViewConfig.enableBackStatePreservation)
+                                ShellWebViewNavigation.goBackOrFinish(this@WebViewActivity, wv, useJsHistoryBack = enableBackStatePreservation)
                             }
                         } else {
                             finish()
