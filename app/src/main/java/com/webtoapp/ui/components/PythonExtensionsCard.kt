@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.webtoapp.core.i18n.Strings
 import com.webtoapp.data.model.CustomPythonExtension
-import com.webtoapp.ui.screens.create.RuntimeSectionHeader
+import com.webtoapp.ui.components.RuntimeSectionHeader
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
