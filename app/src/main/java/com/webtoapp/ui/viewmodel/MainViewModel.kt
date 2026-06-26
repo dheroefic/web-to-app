@@ -1292,6 +1292,59 @@ class MainViewModel(
         )
     }
 
+    fun updateZipHtmlApp(
+        appId: Long,
+        name: String,
+        extractedDir: String,
+        entryFile: String,
+        iconUri: Uri?,
+        enableJavaScript: Boolean = true,
+        enableLocalStorage: Boolean = true,
+        loadMode: HtmlLoadMode = HtmlLoadMode.FILE,
+        landscapeMode: Boolean = false,
+        port: Int = 0,
+        portConflictMode: com.webtoapp.data.model.PortConflictMode = com.webtoapp.data.model.PortConflictMode.AUTO_KILL
+    ) = updateApp(appId, "HTML", iconUri) { existingApp, savedIconPath ->
+        val context = getApplication<Application>()
+
+        val oldProjectId = existingApp.htmlConfig?.projectId
+
+        val projectId = HtmlStorage.generateProjectId()
+        val savedFiles = copyBuildOutputToStorage(context, extractedDir, projectId)
+
+        if (savedFiles.none { it.type == HtmlFileType.HTML || it.name.endsWith(".html", ignoreCase = true) }) {
+            AppLogger.e("MainViewModel", "No HTML files found in updated ZIP project")
+            withContext(Dispatchers.IO) { HtmlStorage.deleteProject(context, projectId) }
+            throw Exception(Strings.saveFailedNoHtmlInZip)
+        }
+
+        if (!oldProjectId.isNullOrBlank() && oldProjectId != projectId) {
+            withContext(Dispatchers.IO) { HtmlStorage.deleteProject(context, oldProjectId) }
+        }
+
+        withContext(Dispatchers.IO) { com.webtoapp.util.ZipProjectImporter.cleanupTempFiles(context) }
+        AppLogger.d("MainViewModel", "ZIP HTML app updated: projectId=$projectId, files=${savedFiles.size}, entry=$entryFile")
+
+        val finalHtmlConfig = HtmlConfig(
+            projectId = projectId,
+            entryFile = entryFile,
+            files = savedFiles,
+            enableJavaScript = enableJavaScript,
+            enableLocalStorage = enableLocalStorage,
+            loadMode = loadMode,
+            landscapeMode = landscapeMode,
+            port = port,
+            portConflictMode = portConflictMode
+        )
+
+        existingApp.copy(
+            name = name.ifBlank { existingApp.name },
+            iconPath = savedIconPath,
+            htmlConfig = finalHtmlConfig,
+            updatedAt = System.currentTimeMillis()
+        )
+    }
+
     fun saveScrapedWebsiteApp(
         name: String,
         url: String,
