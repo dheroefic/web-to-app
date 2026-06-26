@@ -26152,11 +26152,6 @@ object Strings {
         AppLanguage.ENGLISH -> "AdAway default ad blocking list"
         AppLanguage.ARABIC -> "قائمة حظر الإعلانات الافتراضية لـ AdAway"
     }
-    val hostsAntiADDesc: String get() = when (lang) {
-        AppLanguage.CHINESE -> "中文区广告拦截规则"
-        AppLanguage.ENGLISH -> "Chinese region ad blocking rules"
-        AppLanguage.ARABIC -> "قواعد حظر الإعلانات للمنطقة الصينية"
-    }
     val hosts1HostsLiteDesc: String get() = when (lang) {
         AppLanguage.CHINESE -> "轻量级广告和跟踪拦截"
         AppLanguage.ENGLISH -> "Lightweight ad and tracking blocking"
