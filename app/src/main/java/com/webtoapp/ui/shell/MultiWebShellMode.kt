@@ -219,7 +219,7 @@ private fun TabsMode(
                                 webViewConfig = webViewConfig,
                                 webViewCallbacks = webViewCallbacks,
                                 webViewManager = webViewManager,
-                                onWebViewCreated = if (isVisible) onWebViewCreated else { },
+                                onWebViewCreated = if (isVisible) onWebViewCreated else ({ }),
                                 swipeRefreshEnabled = swipeRefreshEnabled,
                                 isRefreshing = isRefreshing,
                                 onRefresh = onRefresh
