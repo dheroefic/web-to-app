@@ -284,7 +284,9 @@ fun HostsAdBlockScreen(
                                     )
                                 },
                                 onFailure = { error ->
-                                    if (error is kotlinx.coroutines.CancellationException) {
+                                    val isCancel = error is kotlinx.coroutines.CancellationException ||
+                                        error.message?.contains("cancelled by user", ignoreCase = true) == true
+                                    if (isCancel) {
                                         snackbarHostState.showSnackbar(Strings.downloadCanceled)
                                     } else {
                                         snackbarHostState.showSnackbar(
