@@ -3142,7 +3142,7 @@ fun SpecialSettingsCard(
                             icon = Icons.Outlined.Print,
                             checked = config.enablePrintBridge,
                             onCheckedChange = { onConfigChange(config.copy(enablePrintBridge = it)) }
-                        )
+                        ) {}
 
                         SpecialAdvancedRow(
                             title = Strings.primeUserActivationTitle,
