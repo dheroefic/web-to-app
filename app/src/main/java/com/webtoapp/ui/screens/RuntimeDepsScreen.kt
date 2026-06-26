@@ -887,7 +887,6 @@ private fun StatusOverviewCard(
             }
         }
     }
-}
 
 @Composable
 private fun RuntimeItemRow(
