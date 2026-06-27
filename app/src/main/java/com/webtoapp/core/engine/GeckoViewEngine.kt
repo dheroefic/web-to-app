@@ -120,6 +120,7 @@ class GeckoViewEngine(
             synchronized(this) {
                 val existing = sharedRuntime
                 if (existing == null) {
+                    AppLogger.d(TAG, "ensureRuntimeForConfig: no existing runtime, creating new (want=$want)")
                     getRuntime(context)
                     return
                 }
@@ -136,6 +137,8 @@ class GeckoViewEngine(
                     }
                     sharedRuntime = null
                     getRuntime(context)
+                } else {
+                    AppLogger.d(TAG, "ensureRuntimeForConfig: config unchanged (want=$want), reusing existing runtime")
                 }
             }
         }
@@ -155,6 +158,7 @@ class GeckoViewEngine(
 
         fun applyDnsConfig(config: com.webtoapp.data.model.DnsConfig) {
             currentDnsConfig = config
+            AppLogger.d(TAG, "applyDnsConfig: provider=${config.provider}, echEnabled=${config.echEnabled}, echEffective=${config.echEffective}, dohMode=${config.dohMode}, dohUrl=${config.effectiveDohUrl}")
             val runtime = sharedRuntime ?: return
             applyDohToRuntime(runtime, config)
         }
@@ -274,6 +278,8 @@ class GeckoViewEngine(
                 prefs["network.dns.http3_echconfig.enabled"] = true
                 prefs["network.dns.upgrade_with_https_rr"] = true
                 prefs["network.dns.use_https_rr_as_altsvc"] = true
+                prefs["network.dns.echconfig.fallback_to_origin_when_all_failed"] = true
+                prefs["network.dns.force_use_https_rr"] = true
             }
 
             currentProxyConfig?.let { prefs.putAll(buildProxyPrefs(it)) }
@@ -296,9 +302,10 @@ class GeckoViewEngine(
             return try {
                 configFile.writeText(yaml)
                 AppLogger.d(TAG, "Gecko config written (prefs=${prefs.size}): ${configFile.absolutePath}")
+                AppLogger.d(TAG, "Gecko config content:\n$yaml")
                 configFile.absolutePath
             } catch (e: Exception) {
-                AppLogger.w(TAG, "Failed to write Gecko config file", e)
+                AppLogger.e(TAG, "Failed to write Gecko config file", e)
                 ""
             }
         }
@@ -380,9 +387,14 @@ class GeckoViewEngine(
         this.callback = callback
         this.lastConfig = config
 
-        if (config.dnsMode != "SYSTEM") {
+        val echInfo = if (config.dnsMode != "SYSTEM") {
             applyDnsConfig(config.dnsConfig)
+            val ech = config.dnsConfig.echEffective
+            if (ech) "ECH_ENABLED" else "ECH_DISABLED"
+        } else {
+            "SYSTEM_DNS"
         }
+        AppLogger.i(TAG, "createView: engine=GeckoView, engineType=${engineType}, dnsMode=${config.dnsMode}, ech=$echInfo")
         ensureRuntimeForConfig(context)
 
         val runtime = getRuntime(context)
