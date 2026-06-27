@@ -76,7 +76,8 @@ fun DnsConfigCard(
                 WtaStatusBanner(
                     modifier = Modifier.padding(top = WtaSpacing.Medium),
                     message = Strings.dnsModeSystemDesc,
-                    tone = WtaStatusTone.Info
+                    tone = WtaStatusTone.Info,
+                    showIcon = false
                 )
             }
 

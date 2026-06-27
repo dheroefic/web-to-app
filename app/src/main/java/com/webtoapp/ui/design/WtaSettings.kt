@@ -667,7 +667,8 @@ fun WtaStatusBanner(
     titleMaxLines: Int = 2,
     messageMaxLines: Int = 4,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
+    onAction: (() -> Unit)? = null,
+    showIcon: Boolean = true
 ) {
     val colors = MaterialTheme.colorScheme
     val container = when (tone) {
@@ -699,8 +700,10 @@ fun WtaStatusBanner(
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(WtaSize.Icon))
-            Spacer(modifier = Modifier.width(WtaSpacing.IconTextGap))
+            if (showIcon) {
+                Icon(icon, contentDescription = null, modifier = Modifier.size(WtaSize.Icon))
+                Spacer(modifier = Modifier.width(WtaSpacing.IconTextGap))
+            }
             Column(modifier = Modifier.weight(1f)) {
                 if (!title.isNullOrBlank()) {
                     Text(

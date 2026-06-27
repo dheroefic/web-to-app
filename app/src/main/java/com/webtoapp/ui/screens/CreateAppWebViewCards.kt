@@ -457,7 +457,8 @@ fun AdBlockCard(
                 WtaStatusBanner(
                     modifier = Modifier.padding(top = WtaSpacing.Medium),
                     message = Strings.adBlockDescription,
-                    tone = WtaStatusTone.Info
+                    tone = WtaStatusTone.Info,
+                    showIcon = false
                 )
             }
 
