@@ -550,10 +550,29 @@ def main() -> int:
 
     output = {
         "schema": 1,
-        "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "submissions": submissions,
     }
-    serialised = json.dumps(output, indent=2, ensure_ascii=False) + "\n"
+
+    if not args.check:
+        existing_text = SUBMISSIONS_PATH.read_text(encoding="utf-8") if SUBMISSIONS_PATH.is_file() else ""
+        try:
+            existing_obj = json.loads(existing_text) if existing_text else {}
+        except json.JSONDecodeError:
+            existing_obj = {}
+        existing_subs = existing_obj.get("submissions") or {}
+        if existing_subs == submissions and "generatedAt" in existing_obj:
+            output["generatedAt"] = existing_obj["generatedAt"]
+        else:
+            output["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        output["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    ordered = {
+        "schema": output["schema"],
+        "generatedAt": output["generatedAt"],
+        "submissions": output["submissions"],
+    }
+    serialised = json.dumps(ordered, indent=2, ensure_ascii=False) + "\n"
 
     if args.check:
         # Diff against the committed file. We tolerate a missing file by
