@@ -23351,6 +23351,30 @@ object Strings {
         AppLanguage.ARABIC -> "المساهمون"
     }
 
+    val moduleMarketContributorsOverview: String get() = when (lang) {
+        AppLanguage.CHINESE -> "%1\$d 位贡献者 · 共 %2\$d 个模块"
+        AppLanguage.ENGLISH -> "%1\$d contributors · %2\$d modules"
+        AppLanguage.ARABIC -> "%1\$d مساهم · %2\$d وحدة"
+    }
+
+    val moduleMarketTopContributor: String get() = when (lang) {
+        AppLanguage.CHINESE -> "首席贡献者"
+        AppLanguage.ENGLISH -> "Top contributor"
+        AppLanguage.ARABIC -> "أبرز مساهم"
+    }
+
+    val moduleMarketModulesContributed: String get() = when (lang) {
+        AppLanguage.CHINESE -> "贡献的模块"
+        AppLanguage.ENGLISH -> "Modules contributed"
+        AppLanguage.ARABIC -> "الوحدات المساهَم بها"
+    }
+
+    val moduleMarketViewProfile: String get() = when (lang) {
+        AppLanguage.CHINESE -> "查看 GitHub 主页"
+        AppLanguage.ENGLISH -> "View GitHub profile"
+        AppLanguage.ARABIC -> "عرض ملف GitHub"
+    }
+
     val moduleMarketViewPullRequest: String get() = when (lang) {
         AppLanguage.CHINESE -> "查看合并的 PR"
         AppLanguage.ENGLISH -> "View merged PR"

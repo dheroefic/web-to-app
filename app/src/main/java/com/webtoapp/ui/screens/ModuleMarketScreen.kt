@@ -3,6 +3,8 @@ package com.webtoapp.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -56,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -355,6 +358,7 @@ fun ModuleMarketScreen(
         ) {
             ContributorsBoard(
                 contributors = aggregatedContributors,
+                totalModules = views.size,
                 onOpenProfile = { url ->
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                 }
@@ -368,32 +372,47 @@ private data class AggregatedContributor(
     val name: String,
     val avatarUrl: String,
     val profileUrl: String,
-    val moduleCount: Int
+    val moduleCount: Int,
+    val moduleNames: List<String> = emptyList()
 )
 
 private fun aggregateContributors(views: List<MarketModuleView>): List<AggregatedContributor> {
-    val counts = mutableMapOf<String, AggregatedContributor>()
+    data class Accumulator(
+        var login: String = "",
+        var name: String = "",
+        var avatarUrl: String = "",
+        var profileUrl: String = "",
+        var moduleNames: MutableList<String> = mutableListOf()
+    )
+    val acc = mutableMapOf<String, Accumulator>()
     for (view in views) {
         val submission = view.submission ?: continue
+        val moduleName = view.entry.name
         val all = listOfNotNull(submission.submitter) + submission.contributors
         for (person in all) {
             if (person.login.isBlank()) continue
             val key = person.login.lowercase()
-            val existing = counts[key]
-            if (existing == null) {
-                counts[key] = AggregatedContributor(
+            val bucket = acc.getOrPut(key) {
+                Accumulator(
                     login = person.login,
                     name = person.name.ifBlank { person.login },
                     avatarUrl = person.avatarUrl,
-                    profileUrl = person.profileUrl,
-                    moduleCount = 1
+                    profileUrl = person.profileUrl
                 )
-            } else {
-                counts[key] = existing.copy(moduleCount = existing.moduleCount + 1)
             }
+            if (moduleName !in bucket.moduleNames) bucket.moduleNames.add(moduleName)
         }
     }
-    return counts.values.sortedByDescending { it.moduleCount }
+    return acc.values.map {
+        AggregatedContributor(
+            login = it.login,
+            name = it.name,
+            avatarUrl = it.avatarUrl,
+            profileUrl = it.profileUrl,
+            moduleCount = it.moduleNames.size,
+            moduleNames = it.moduleNames
+        )
+    }.sortedWith(compareByDescending<AggregatedContributor> { it.moduleCount }.thenBy { it.login.lowercase() })
 }
 
 private suspend fun installModule(
@@ -954,10 +973,13 @@ private fun PeopleAvatarStack(
 @Composable
 private fun ContributorsBoard(
     contributors: List<AggregatedContributor>,
+    totalModules: Int,
     onOpenProfile: (String) -> Unit
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val expandedStates = remember { mutableStateMapOf<String, Boolean>() }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -965,7 +987,7 @@ private fun ContributorsBoard(
             .padding(bottom = 24.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -975,100 +997,210 @@ private fun ContributorsBoard(
                 modifier = Modifier.size(24.dp)
             )
             Spacer(Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    Strings.moduleMarketContributorsTitle,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    "${contributors.size} · " + contributors.joinToString(" · ") { it.moduleCount.toString() }.take(40),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                Strings.moduleMarketContributorsTitle,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
+        Text(
+            Strings.moduleMarketContributorsOverview
+                .replace("%1\$d", contributors.size.toString())
+                .replace("%2\$d", totalModules.toString()),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 420.dp)
+                .heightIn(max = 460.dp)
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            contributors.forEach { contributor ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .let { base ->
-                            if (contributor.profileUrl.isNotBlank()) {
-                                base.clickable { onOpenProfile(contributor.profileUrl) }
-                            } else base
-                        }
-                        .padding(vertical = 6.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            contributors.forEachIndexed { index, contributor ->
+                val isExpanded = expandedStates[contributor.login] == true
+                val isTop = index == 0 && contributor.moduleCount > 1
+
+                WtaCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    tone = if (isTop) WtaCardTone.Highlighted else WtaCardTone.Surface,
+                    contentPadding = PaddingValues(WtaSpacing.Medium)
                 ) {
-                    if (contributor.avatarUrl.isNotBlank()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(contributor.avatarUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
+                    Column(
+                        modifier = Modifier.animateContentSize()
+                    ) {
+                        Row(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .let { base ->
+                                    if (contributor.profileUrl.isNotBlank()) {
+                                        base.clickable {
+                                            expandedStates[contributor.login] = !isExpanded
+                                        }
+                                    } else base
+                                },
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                contributor.login.take(1).uppercase(),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.SemiBold
+                            ContributorAvatar(contributor, size = 44.dp)
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        contributor.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    if (isTop) {
+                                        Spacer(Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = MaterialTheme.colorScheme.primaryContainer
+                                        ) {
+                                            Text(
+                                                Strings.moduleMarketTopContributor,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(
+                                    "@" + contributor.login,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    contributor.moduleCount.toString(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    Strings.moduleMarketModulesContributed,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                            Spacer(Modifier.width(4.dp))
+                            Icon(
+                                if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            contributor.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            "@" + contributor.login,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
-                        )
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Text(
-                            contributor.moduleCount.toString(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            fontWeight = FontWeight.SemiBold
-                        )
+
+                        AnimatedVisibility(visible = isExpanded) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 12.dp)
+                            ) {
+                                Text(
+                                    Strings.moduleMarketModulesContributed,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                contributor.moduleNames.forEach { name ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                                if (contributor.profileUrl.isNotBlank()) {
+                                    Spacer(Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                                            .clickable { onOpenProfile(contributor.profileUrl) }
+                                            .padding(vertical = 10.dp, horizontal = 14.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.OpenInNew,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            Strings.moduleMarketViewProfile,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ContributorAvatar(contributor: AggregatedContributor, size: androidx.compose.ui.unit.Dp) {
+    val context = LocalContext.current
+    if (contributor.avatarUrl.isNotBlank()) {
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(contributor.avatarUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                contributor.login.take(1).uppercase(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
