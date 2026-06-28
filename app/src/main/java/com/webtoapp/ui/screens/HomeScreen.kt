@@ -2190,37 +2190,6 @@ fun BuildApkDialog(
         confirmButton = {
             if (!isBuilding) {
                 val builtApk = analysisReport?.apkFile
-                PremiumButton(
-                    onClick = {
-                        if (builtApk != null) {
-
-                            val installStarted = apkBuilder.installApk(builtApk)
-                            onResult(
-                                if (installStarted) "正在启动安装..."
-                                else "无法自动启动安装"
-                            )
-                        } else {
-                            launchBuild()
-                        }
-                    }
-                ) {
-                    val icon = if (builtApk != null) Icons.Outlined.GetApp else Icons.Outlined.Build
-                    Icon(icon, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        when {
-                            builtApk != null -> Strings.install
-                            buildFailureReport != null || preflightReport?.hasErrors == true -> Strings.btnRetry
-                            else -> Strings.btnStartBuild
-                        }
-                    )
-                }
-            } else {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            }
-        },
-        dismissButton = {
-            if (!isBuilding) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = onExportAab) {
                         Icon(
@@ -2231,11 +2200,39 @@ fun BuildApkDialog(
                         Spacer(Modifier.width(6.dp))
                         Text(Strings.playStoreExportAabButton)
                     }
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.width(4.dp))
                     TextButton(onClick = onDismiss) {
                         Text(if (analysisReport != null) Strings.close else Strings.btnCancel)
                     }
+                    Spacer(Modifier.width(8.dp))
+                    PremiumButton(
+                        onClick = {
+                            if (builtApk != null) {
+
+                                val installStarted = apkBuilder.installApk(builtApk)
+                                onResult(
+                                    if (installStarted) "正在启动安装..."
+                                    else "无法自动启动安装"
+                                )
+                            } else {
+                                launchBuild()
+                            }
+                        }
+                    ) {
+                        val icon = if (builtApk != null) Icons.Outlined.GetApp else Icons.Outlined.Build
+                        Icon(icon, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            when {
+                                builtApk != null -> Strings.install
+                                buildFailureReport != null || preflightReport?.hasErrors == true -> Strings.btnRetry
+                                else -> Strings.btnStartBuild
+                            }
+                        )
+                    }
                 }
+            } else {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
         }
     )
