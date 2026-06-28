@@ -60,6 +60,8 @@ class ModuleMarketRepository private constructor(
 
             "https://cdn.jsdelivr.net/gh/$OWNER/$REPO@$BRANCH/$MODULES_DIR"
         )
+
+        private const val MIRROR_PREFIX = "https://v4.gh-proxy.org/"
     }
 
     private val gson: Gson = GsonBuilder().setLenient().create()
@@ -260,7 +262,7 @@ class ModuleMarketRepository private constructor(
         if (raw.startsWith("https://") || raw.startsWith("http://")) return raw
 
         val normalised = raw.removePrefix("./").removePrefix("/")
-        return "${SOURCES.first()}/${entry.path}/$normalised"
+        return "$MIRROR_PREFIX${SOURCES.first()}/${entry.path}/$normalised"
     }
 
     val contributingUrl: String =
@@ -268,24 +270,34 @@ class ModuleMarketRepository private constructor(
 
     private fun fetchRaw(relativePath: String): String? {
         for (base in SOURCES) {
-            val url = "$base/$relativePath"
-            try {
-                val req = Request.Builder()
-                    .url(url)
-                    .header("User-Agent", "WebToApp/${BuildConfig.VERSION_NAME}")
-                    .get()
-                    .build()
-                httpClient.newCall(req).execute().use { resp ->
-                    if (resp.isSuccessful) {
-                        return resp.body?.string()
-                    }
-                    AppLogger.w(TAG, "fetch $url -> HTTP ${resp.code}")
-                }
-            } catch (e: Exception) {
-                AppLogger.w(TAG, "fetch $url failed: ${e.message}")
-            }
+            val mirroredUrl = "$MIRROR_PREFIX$base/$relativePath"
+            fetchOnce(mirroredUrl)?.let { return it }
+
+            val directUrl = "$base/$relativePath"
+            fetchOnce(directUrl)?.let { return it }
         }
         return null
+    }
+
+    private fun fetchOnce(url: String): String? {
+        return try {
+            val req = Request.Builder()
+                .url(url)
+                .header("User-Agent", "WebToApp/${BuildConfig.VERSION_NAME}")
+                .get()
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (resp.isSuccessful) {
+                    resp.body?.string()
+                } else {
+                    AppLogger.w(TAG, "fetch $url -> HTTP ${resp.code}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "fetch $url failed: ${e.message}")
+            null
+        }
     }
 
     private fun readCachedRegistry(): ModuleMarketRegistry? {
