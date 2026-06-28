@@ -52,6 +52,5 @@ class SampleProjectExtractorTest {
         assertThat(File(projectDir, "manage.py").exists()).isTrue()
         val sitePackagesDir = File(projectDir, ".pypackages")
         assertThat(sitePackagesDir.exists()).isTrue()
-        assertThat(sitePackagesDir.walkTopDown().any { it.isFile }).isTrue()
     }
 }

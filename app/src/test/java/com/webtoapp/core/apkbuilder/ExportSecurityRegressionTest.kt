@@ -115,6 +115,7 @@ class ExportSecurityRegressionTest {
             name = "Zenbox",
             url = "https://example.com",
             appType = AppType.WEB,
+            webViewConfig = WebViewConfig(downloadEnabled = false),
             apkExportConfig = ApkExportConfig()
         ).toApkConfig("com.example.zenbox", context)
 
@@ -158,6 +159,7 @@ class ExportSecurityRegressionTest {
             name = "Recorder",
             url = "https://example.com",
             appType = AppType.WEB,
+            webViewConfig = WebViewConfig(downloadEnabled = false),
             apkExportConfig = ApkExportConfig(
                 runtimePermissions = com.webtoapp.data.model.ApkRuntimePermissions(
                     camera = true,
