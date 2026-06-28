@@ -12,7 +12,7 @@ class ChromeWebStoreSearchTest {
     }
 
     @Test
-    fun parses real adblock search response with name_storeId_and_icon() {
+    fun `parses real adblock search response with name storeId and icon`() {
         val raw = loadFixture("search_adblock.txt")
         val results = ChromeWebStoreSearch.parseBatchExecute(raw)
 
@@ -32,7 +32,7 @@ class ChromeWebStoreSearchTest {
     }
 
     @Test
-    fun every parsed result has valid storeId shape() {
+    fun `every parsed result has valid storeId shape`() {
         val raw = loadFixture("search_adblock.txt")
         val results = ChromeWebStoreSearch.parseBatchExecute(raw) ?: emptyList()
 
@@ -44,7 +44,7 @@ class ChromeWebStoreSearchTest {
     }
 
     @Test
-    fun skips malformed entries without crashing() {
+    fun `skips malformed entries without crashing`() {
         val raw = loadFixture("search_adblock.txt")
         val results = ChromeWebStoreSearch.parseBatchExecute(raw) ?: emptyList()
 
@@ -53,7 +53,7 @@ class ChromeWebStoreSearchTest {
     }
 
     @Test
-    fun returns empty list for no_result query() {
+    fun `returns empty list for no_result query`() {
         val raw = loadFixture("search_empty.txt")
         val results = ChromeWebStoreSearch.parseBatchExecute(raw)
 
@@ -62,7 +62,7 @@ class ChromeWebStoreSearchTest {
     }
 
     @Test
-    fun returns null on garbage input() {
+    fun `returns null on garbage input`() {
         val results = ChromeWebStoreSearch.parseBatchExecute("not a valid response")
         assertThat(results).isNull()
     }
