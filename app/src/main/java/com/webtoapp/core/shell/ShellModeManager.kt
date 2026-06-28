@@ -1559,7 +1559,22 @@ data class ErrorPageShellConfig(
     val customMediaPath: String = "",
 
     @SerializedName("retryButtonText")
-    val retryButtonText: String = ""
+    val retryButtonText: String = "",
+
+    @SerializedName("showHttp4xxErrorUi")
+    val showHttp4xxErrorUi: Boolean = true,
+
+    @SerializedName("showHttp5xxErrorUi")
+    val showHttp5xxErrorUi: Boolean = true,
+
+    @SerializedName("showNetworkErrorUi")
+    val showNetworkErrorUi: Boolean = true,
+
+    @SerializedName("showSslErrorUi")
+    val showSslErrorUi: Boolean = true,
+
+    @SerializedName("showRenderCrashErrorUi")
+    val showRenderCrashErrorUi: Boolean = true
 )
 
 data class ShellUserScript(

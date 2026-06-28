@@ -450,19 +450,6 @@ fun AdBlockCard(
             )
 
             AnimatedVisibility(
-                visible = !enabled,
-                enter = CardExpandTransition,
-                exit = CardCollapseTransition
-            ) {
-                WtaStatusBanner(
-                    modifier = Modifier.padding(top = WtaSpacing.Medium),
-                    message = Strings.adBlockDescription,
-                    tone = WtaStatusTone.Info,
-                    showIcon = false
-                )
-            }
-
-            AnimatedVisibility(
                 visible = enabled,
                 enter = CardExpandTransition,
                 exit = CardCollapseTransition
@@ -731,27 +718,12 @@ private fun AdBlockHeader(
                 )
             }
             Spacer(Modifier.width(WtaSpacing.IconTextGap))
-            Column {
-                Text(
-                    text = Strings.adBlocking,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = if (enabled) {
-                        val parts = mutableListOf<String>()
-                        if (subscriptionsCount > 0) parts.add(Strings.adBlockSubscriptionsLabel)
-                        if (rulesCount > 0) parts.add(Strings.rulesCount.format(rulesCount))
-                        parts.joinToString(" · ").ifEmpty { Strings.enabled }
-                    } else Strings.disabled,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                text = Strings.adBlocking,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
         WtaSwitch(
             checked = enabled,
@@ -3445,6 +3417,53 @@ fun SpecialSettingsCard(
                             config = config,
                             onConfigChange = onConfigChange
                         )
+                    }
+
+                    WtaSection(
+                        title = Strings.errorUiSectionTitle,
+                        headerStyle = WtaSectionHeaderStyle.Quiet
+                    ) {
+                        WtaSettingCard {
+                            WtaToggleRow(
+                                title = Strings.showHttp4xxErrorUiTitle,
+                                subtitle = Strings.showHttp4xxErrorUiDesc,
+                                icon = Icons.Outlined.ErrorOutline,
+                                checked = config.errorPageConfig.showHttp4xxErrorUi,
+                                onCheckedChange = { onConfigChange(config.copy(errorPageConfig = config.errorPageConfig.copy(showHttp4xxErrorUi = it))) }
+                            )
+                            WtaSectionDivider()
+                            WtaToggleRow(
+                                title = Strings.showHttp5xxErrorUiTitle,
+                                subtitle = Strings.showHttp5xxErrorUiDesc,
+                                icon = Icons.Outlined.CloudOff,
+                                checked = config.errorPageConfig.showHttp5xxErrorUi,
+                                onCheckedChange = { onConfigChange(config.copy(errorPageConfig = config.errorPageConfig.copy(showHttp5xxErrorUi = it))) }
+                            )
+                            WtaSectionDivider()
+                            WtaToggleRow(
+                                title = Strings.showNetworkErrorUiTitle,
+                                subtitle = Strings.showNetworkErrorUiDesc,
+                                icon = Icons.Outlined.WifiOff,
+                                checked = config.errorPageConfig.showNetworkErrorUi,
+                                onCheckedChange = { onConfigChange(config.copy(errorPageConfig = config.errorPageConfig.copy(showNetworkErrorUi = it))) }
+                            )
+                            WtaSectionDivider()
+                            WtaToggleRow(
+                                title = Strings.showSslErrorUiTitle,
+                                subtitle = null,
+                                icon = Icons.Outlined.Lock,
+                                checked = config.errorPageConfig.showSslErrorUi,
+                                onCheckedChange = { onConfigChange(config.copy(errorPageConfig = config.errorPageConfig.copy(showSslErrorUi = it))) }
+                            )
+                            WtaSectionDivider()
+                            WtaToggleRow(
+                                title = Strings.showRenderCrashErrorUiTitle,
+                                subtitle = Strings.showRenderCrashErrorUiDesc,
+                                icon = Icons.Outlined.BrokenImage,
+                                checked = config.errorPageConfig.showRenderCrashErrorUi,
+                                onCheckedChange = { onConfigChange(config.copy(errorPageConfig = config.errorPageConfig.copy(showRenderCrashErrorUi = it))) }
+                            )
+                        }
                     }
                 }
             }

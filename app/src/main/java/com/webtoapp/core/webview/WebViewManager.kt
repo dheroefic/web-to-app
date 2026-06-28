@@ -2320,6 +2320,11 @@ class WebViewManager(
                         }
                     }
 
+                    if (!config.errorPageConfig.showNetworkErrorUi) {
+                        AppLogger.d("WebViewManager", "Network error UI suppressed by config: code=$errorCode")
+                        return
+                    }
+
                     val manager = errorPageManager
                     if (manager != null && view != null) {
                         val errorHtml = manager.generateErrorPage(errorCode, description, rawDescription, failedUrl)
@@ -2375,6 +2380,16 @@ class WebViewManager(
                                 return
                             }
                         }
+                    }
+
+                    val errorUiEnabled = when {
+                        statusCode in 500..599 -> config.errorPageConfig.showHttp5xxErrorUi
+                        statusCode in 400..499 -> config.errorPageConfig.showHttp4xxErrorUi
+                        else -> true
+                    }
+                    if (!errorUiEnabled) {
+                        AppLogger.d("WebViewManager", "HTTP error UI suppressed by config: code=$statusCode")
+                        return
                     }
 
                     val manager = errorPageManager
@@ -2435,7 +2450,11 @@ class WebViewManager(
                 }
 
                 handler?.cancel()
-                callbacks.onSslError(error?.toString() ?: "SSL Error")
+                if (config.errorPageConfig.showSslErrorUi) {
+                    callbacks.onSslError(error?.toString() ?: "SSL Error")
+                } else {
+                    AppLogger.d("WebViewManager", "SSL error UI suppressed by config: $errorUrl")
+                }
             }
 
             override fun onReceivedHttpAuthRequest(
@@ -2570,14 +2589,18 @@ class WebViewManager(
                     goneView.destroy()
                 }
 
-                callbacks.onError(
-                    -1003,
-                    if (didCrash) {
-                        "WebView render process crashed. Please reopen the page."
-                    } else {
-                        "WebView render process was killed due to memory pressure. Please reopen the page."
-                    }
-                )
+                if (config.errorPageConfig.showRenderCrashErrorUi) {
+                    callbacks.onError(
+                        -1003,
+                        if (didCrash) {
+                            "WebView render process crashed. Please reopen the page."
+                        } else {
+                            "WebView render process was killed due to memory pressure. Please reopen the page."
+                        }
+                    )
+                } else {
+                    AppLogger.d("WebViewManager", "Render crash UI suppressed by config")
+                }
 
                 callbacks.onRenderProcessGone(didCrash)
                 return true

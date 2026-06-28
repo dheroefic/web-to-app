@@ -3347,7 +3347,12 @@ private fun WebApp.buildErrorPageBlock(): ErrorPageBlock {
         autoRetrySeconds = ep.autoRetrySeconds,
         customHtml = ep.customHtml ?: "",
         customMediaPath = resolveErrorPageMediaPath(ep.customMediaPath),
-        retryButtonText = ep.retryButtonText
+        retryButtonText = ep.retryButtonText,
+        showHttp4xxErrorUi = ep.showHttp4xxErrorUi,
+        showHttp5xxErrorUi = ep.showHttp5xxErrorUi,
+        showNetworkErrorUi = ep.showNetworkErrorUi,
+        showSslErrorUi = ep.showSslErrorUi,
+        showRenderCrashErrorUi = ep.showRenderCrashErrorUi
     )
 }
 

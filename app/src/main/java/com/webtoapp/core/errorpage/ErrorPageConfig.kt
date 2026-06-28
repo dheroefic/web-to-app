@@ -48,5 +48,15 @@ data class ErrorPageConfig(
 
     val autoRetrySeconds: Int = 15,
 
+    val showHttp4xxErrorUi: Boolean = true,
+
+    val showHttp5xxErrorUi: Boolean = true,
+
+    val showNetworkErrorUi: Boolean = true,
+
+    val showSslErrorUi: Boolean = true,
+
+    val showRenderCrashErrorUi: Boolean = true,
+
     val language: String = "ENGLISH"
 )

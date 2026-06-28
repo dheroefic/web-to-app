@@ -17805,6 +17805,31 @@ object Strings {
         AppLanguage.ENGLISH -> "Basic text dialogue and generation"
         AppLanguage.ARABIC -> "حوار وإنشاء النص الأساسي"
     }
+    val capabilityMultimodal: String get() = when (lang) {
+        AppLanguage.CHINESE -> "多模态"
+        AppLanguage.ENGLISH -> "Multimodal"
+        AppLanguage.ARABIC -> "متعدد الوسائط"
+    }
+    val capabilityMultimodalDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "支持文本、图像、音频等多种输入"
+        AppLanguage.ENGLISH -> "Supports text, image, audio and other input modalities"
+        AppLanguage.ARABIC -> "يدعم النص والصور والصوت وغيرها من أنواع الإدخال"
+    }
+    val modelCategory: String get() = when (lang) {
+        AppLanguage.CHINESE -> "模型分类"
+        AppLanguage.ENGLISH -> "Model Category"
+        AppLanguage.ARABIC -> "فئة النموذج"
+    }
+    val multimodalModel: String get() = when (lang) {
+        AppLanguage.CHINESE -> "多模态模型"
+        AppLanguage.ENGLISH -> "Multimodal Model"
+        AppLanguage.ARABIC -> "نموذج متعدد الوسائط"
+    }
+    val multimodalModelDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "支持文本、图像、音频等多种输入"
+        AppLanguage.ENGLISH -> "Supports text, image, audio and other input modalities"
+        AppLanguage.ARABIC -> "يدعم النص والصور والصوت وغيرها من أنواع الإدخال"
+    }
     val capabilityAudio: String get() = when (lang) {
         AppLanguage.CHINESE -> "音频理解"
         AppLanguage.ENGLISH -> "Audio Understanding"
@@ -30353,6 +30378,66 @@ object Strings {
 
     val shortcutPermissionGeneric: String
         get() = "The current launcher may not support creating shortcuts. Please check home screen settings or app permissions.\n\nClick 'Go to Settings' to open the app details page and check for relevant permission options."
+
+    val errorUiSectionTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "错误提示"
+        AppLanguage.ENGLISH -> "Error Notifications"
+        AppLanguage.ARABIC -> "تنبيهات الأخطاء"
+    }
+
+    val showHttp4xxErrorUiTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "HTTP 4xx 错误提示"
+        AppLanguage.ENGLISH -> "HTTP 4xx error notifications"
+        AppLanguage.ARABIC -> "تنبيهات أخطاء HTTP 4xx"
+    }
+
+    val showHttp4xxErrorUiDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "如 403、404 等客户端错误"
+        AppLanguage.ENGLISH -> "Client errors such as 403, 404"
+        AppLanguage.ARABIC -> "أخطاء العميل مثل 403 و404"
+    }
+
+    val showHttp5xxErrorUiTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "HTTP 5xx 错误提示"
+        AppLanguage.ENGLISH -> "HTTP 5xx error notifications"
+        AppLanguage.ARABIC -> "تنبيهات أخطاء HTTP 5xx"
+    }
+
+    val showHttp5xxErrorUiDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "如 500、502、503 等服务端错误"
+        AppLanguage.ENGLISH -> "Server errors such as 500, 502, 503"
+        AppLanguage.ARABIC -> "أخطاء الخادم مثل 500 و502 و503"
+    }
+
+    val showNetworkErrorUiTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "网络错误提示"
+        AppLanguage.ENGLISH -> "Network error notifications"
+        AppLanguage.ARABIC -> "تنبيهات أخطاء الشبكة"
+    }
+
+    val showNetworkErrorUiDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "DNS 解析失败、连接超时、断网等"
+        AppLanguage.ENGLISH -> "DNS failure, connection timeout, offline, etc."
+        AppLanguage.ARABIC -> "فشل DNS وانتهاء مهلة الاتصال وانقطاع الشبكة وغيرها"
+    }
+
+    val showSslErrorUiTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "SSL 证书错误提示"
+        AppLanguage.ENGLISH -> "SSL certificate error notifications"
+        AppLanguage.ARABIC -> "تنبيهات أخطاء شهادة SSL"
+    }
+
+    val showRenderCrashErrorUiTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "渲染崩溃提示"
+        AppLanguage.ENGLISH -> "Render crash notifications"
+        AppLanguage.ARABIC -> "تنبيهات تعطل العرض"
+    }
+
+    val showRenderCrashErrorUiDesc: String get() = when (lang) {
+        AppLanguage.CHINESE -> "WebView 渲染进程崩溃或被回收"
+        AppLanguage.ENGLISH -> "WebView render process crashed or killed"
+        AppLanguage.ARABIC -> "تعطل عملية عرض WebView أو إنهاؤها"
+    }
 
     val errorPageTitle: String get() = when (lang) {
         AppLanguage.CHINESE -> "自定义无网络页面"

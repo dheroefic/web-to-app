@@ -354,7 +354,12 @@ internal object ApkConfigJsonFactory {
         "autoRetrySeconds" to errorPage.autoRetrySeconds,
         "customHtml" to errorPage.customHtml,
         "customMediaPath" to errorPage.customMediaPath,
-        "retryButtonText" to errorPage.retryButtonText
+        "retryButtonText" to errorPage.retryButtonText,
+        "showHttp4xxErrorUi" to errorPage.showHttp4xxErrorUi,
+        "showHttp5xxErrorUi" to errorPage.showHttp5xxErrorUi,
+        "showNetworkErrorUi" to errorPage.showNetworkErrorUi,
+        "showSslErrorUi" to errorPage.showSslErrorUi,
+        "showRenderCrashErrorUi" to errorPage.showRenderCrashErrorUi
     )
 
     private fun ApkConfig.mediaConfigPayload(): Map<String, Any?> = linkedMapOf(
