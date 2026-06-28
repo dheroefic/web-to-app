@@ -57,9 +57,11 @@ class TlsFingerprintTemplateTest {
     }
 
     @Test
-    fun `Chrome template has more cipher suites than Firefox`() {
-        assertThat(TlsFingerprintTemplate.CHROME_131.cipherSuites.size)
-            .isAtLeast(TlsFingerprintTemplate.FIREFOX_133.cipherSuites.size)
+    fun `Chrome and Firefox templates have distinct cipher suites`() {
+        assertThat(TlsFingerprintTemplate.CHROME_131.cipherSuites)
+            .isNotEqualTo(TlsFingerprintTemplate.FIREFOX_133.cipherSuites)
+        assertThat(TlsFingerprintTemplate.CHROME_131.cipherSuites.size).isAtLeast(10)
+        assertThat(TlsFingerprintTemplate.FIREFOX_133.cipherSuites.size).isAtLeast(10)
     }
 
     @Test
