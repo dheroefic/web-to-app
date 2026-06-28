@@ -247,7 +247,12 @@ fun buildWebViewConfig(config: ShellConfig): WebViewConfig {
             autoRetrySeconds = config.webViewConfig.errorPageConfig.autoRetrySeconds,
             customHtml = config.webViewConfig.errorPageConfig.customHtml.takeIf { it.isNotEmpty() },
             customMediaPath = config.webViewConfig.errorPageConfig.customMediaPath.takeIf { it.isNotEmpty() },
-            retryButtonText = config.webViewConfig.errorPageConfig.retryButtonText
+            retryButtonText = config.webViewConfig.errorPageConfig.retryButtonText,
+            showHttp4xxErrorUi = config.webViewConfig.errorPageConfig.showHttp4xxErrorUi,
+            showHttp5xxErrorUi = config.webViewConfig.errorPageConfig.showHttp5xxErrorUi,
+            showNetworkErrorUi = config.webViewConfig.errorPageConfig.showNetworkErrorUi,
+            showSslErrorUi = config.webViewConfig.errorPageConfig.showSslErrorUi,
+            showRenderCrashErrorUi = config.webViewConfig.errorPageConfig.showRenderCrashErrorUi
         ),
 
         allowFileAccessFromFileURLs = isLocalFileApp,

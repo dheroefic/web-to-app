@@ -246,6 +246,11 @@ data class ApkConfig(
     val errorPageCustomHtml: String get() = errorPage.customHtml
     val errorPageCustomMediaPath: String get() = errorPage.customMediaPath
     val errorPageRetryButtonText: String get() = errorPage.retryButtonText
+    val errorPageShowHttp4xxErrorUi: Boolean get() = errorPage.showHttp4xxErrorUi
+    val errorPageShowHttp5xxErrorUi: Boolean get() = errorPage.showHttp5xxErrorUi
+    val errorPageShowNetworkErrorUi: Boolean get() = errorPage.showNetworkErrorUi
+    val errorPageShowSslErrorUi: Boolean get() = errorPage.showSslErrorUi
+    val errorPageShowRenderCrashErrorUi: Boolean get() = errorPage.showRenderCrashErrorUi
 
     val splashEnabled: Boolean get() = splash.enabled
     val splashType: String get() = splash.type
@@ -651,7 +656,12 @@ data class ErrorPageBlock(
     val autoRetrySeconds: Int = 15,
     val customHtml: String = "",
     val customMediaPath: String = "",
-    val retryButtonText: String = ""
+    val retryButtonText: String = "",
+    val showHttp4xxErrorUi: Boolean = true,
+    val showHttp5xxErrorUi: Boolean = true,
+    val showNetworkErrorUi: Boolean = true,
+    val showSslErrorUi: Boolean = true,
+    val showRenderCrashErrorUi: Boolean = true
 )
 
 data class SplashBlock(
