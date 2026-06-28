@@ -55794,6 +55794,42 @@ object Strings {
         AppLanguage.JAPANESE -> "Exporting AAB..."
         AppLanguage.KOREAN -> "Exporting AAB..."
     }
+    val playStoreExportCancelled: String get() = when (lang) {
+        AppLanguage.CHINESE -> "已取消导出"
+        AppLanguage.ENGLISH -> "Export cancelled"
+        AppLanguage.ARABIC -> "تم إلغاء التصدير"
+        AppLanguage.PORTUGUESE -> "Export cancelled"
+        AppLanguage.SPANISH -> "Export cancelled"
+        AppLanguage.FRENCH -> "Export cancelled"
+        AppLanguage.GERMAN -> "Export cancelled"
+        AppLanguage.RUSSIAN -> "Export cancelled"
+        AppLanguage.JAPANESE -> "Export cancelled"
+        AppLanguage.KOREAN -> "Export cancelled"
+    }
+    val playStoreExportAabConfirmTitle: String get() = when (lang) {
+        AppLanguage.CHINESE -> "导出 AAB"
+        AppLanguage.ENGLISH -> "Export AAB"
+        AppLanguage.ARABIC -> "تصدير AAB"
+        AppLanguage.PORTUGUESE -> "Export AAB"
+        AppLanguage.SPANISH -> "Export AAB"
+        AppLanguage.FRENCH -> "Export AAB"
+        AppLanguage.GERMAN -> "Export AAB"
+        AppLanguage.RUSSIAN -> "Export AAB"
+        AppLanguage.JAPANESE -> "Export AAB"
+        AppLanguage.KOREAN -> "Export AAB"
+    }
+    val playStoreExportAabConfirmBody: String get() = when (lang) {
+        AppLanguage.CHINESE -> "将跳转到导出页面，并自动为该应用构建 APK 并导出可上传 Google Play 的签名 AAB。是否继续?"
+        AppLanguage.ENGLISH -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.ARABIC -> "سيفتح صفحة التصدير ويبني APK تلقائياً ويصدّر AAB موقّعاً جاهزاً لـ Google Play. هل تريد المتابعة؟"
+        AppLanguage.PORTUGUESE -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.SPANISH -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.FRENCH -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.GERMAN -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.RUSSIAN -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.JAPANESE -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+        AppLanguage.KOREAN -> "This opens the export page and automatically builds the APK and exports a signed AAB ready for Google Play. Continue?"
+    }
     val playStoreExportSuccess: String get() = when (lang) {
         AppLanguage.CHINESE -> "AAB 导出成功"
         AppLanguage.ENGLISH -> "AAB Export Successful"

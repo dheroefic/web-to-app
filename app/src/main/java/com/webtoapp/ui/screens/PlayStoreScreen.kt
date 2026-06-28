@@ -87,6 +87,7 @@ fun PlayStoreScreen(
     var report by remember { mutableStateOf<PlayPolicyChecker.Report?>(null) }
     var exportState by remember { mutableStateOf<ExportState>(ExportState.Idle) }
     var policyExpanded by rememberSaveable { mutableStateOf(false) }
+    var exportJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
 
     LaunchedEffect(webApps) {
         if (selectedAppId == null && webApps.isNotEmpty()) {
@@ -108,13 +109,15 @@ fun PlayStoreScreen(
     fun runExport(app: WebApp) {
         if (exportState is ExportState.Running) return
         exportState = ExportState.Running(AabExporter.Stage.STARTING, 0)
-        scope.launch {
+        exportJob = scope.launch {
             exportState = withContext(Dispatchers.IO) {
                 try {
                     val result = coordinator.export(app) { stage, pct ->
                         exportState = ExportState.Running(stage, pct)
                     }
                     ExportState.Success(result.signedAab.absolutePath)
+                } catch (_: kotlinx.coroutines.CancellationException) {
+                    ExportState.Cancelled
                 } catch (e: AabExportException) {
                     ExportState.Failed(
                         failureStage = e.failureStage,
@@ -130,6 +133,12 @@ fun PlayStoreScreen(
                 }
             }
         }
+    }
+
+    fun cancelExport() {
+        exportJob?.cancel()
+        exportJob = null
+        exportState = ExportState.Cancelled
     }
 
     LaunchedEffect(autoStartExport, selectedApp?.id) {
@@ -186,7 +195,8 @@ fun PlayStoreScreen(
                             state = exportState,
                             onShare = { path ->
                                 shareAab(context, java.io.File(path), snackbarHostState, scope)
-                            }
+                            },
+                            onCancel = { cancelExport() }
                         )
                     }
                 }
@@ -592,6 +602,8 @@ internal sealed interface ExportState {
 
     data class Success(val aabPath: String) : ExportState
 
+    data object Cancelled : ExportState
+
     data class Failed(
         val failureStage: FailureStage,
         val technicalDetails: String,
@@ -602,7 +614,8 @@ internal sealed interface ExportState {
 @Composable
 private fun ExportStateCard(
     state: ExportState,
-    onShare: (path: String) -> Unit
+    onShare: (path: String) -> Unit,
+    onCancel: () -> Unit
 ) {
     when (state) {
         is ExportState.Idle -> Unit
@@ -634,6 +647,38 @@ private fun ExportStateCard(
                         progress = { state.percent / 100f },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    androidx.compose.material3.TextButton(
+                        onClick = onCancel,
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = Strings.btnCancel,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        }
+
+        is ExportState.Cancelled -> {
+            WtaCard(tone = WtaCardTone.Surface) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = Strings.playStoreExportCancelled,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

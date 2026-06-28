@@ -1800,6 +1800,7 @@ fun BuildApkDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val apkBuilder = remember { ApkBuilder(context) }
+    var showExportAabConfirm by remember { mutableStateOf(false) }
 
     var isBuilding by remember(webApp.id) { mutableStateOf(false) }
     var progress by remember(webApp.id) { mutableIntStateOf(0) }
@@ -2197,7 +2198,7 @@ fun BuildApkDialog(
             if (!isBuilding) {
                 val builtApk = analysisReport?.apkFile
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = onExportAab) {
+                    TextButton(onClick = { showExportAabConfirm = true }) {
                         Icon(
                             Icons.Outlined.PlayCircleOutline,
                             null,
@@ -2242,6 +2243,26 @@ fun BuildApkDialog(
             }
         }
     )
+
+    if (showExportAabConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showExportAabConfirm = false },
+            icon = { Icon(Icons.Outlined.PlayCircleOutline, null) },
+            title = { Text(Strings.playStoreExportAabConfirmTitle) },
+            text = { Text(Strings.playStoreExportAabConfirmBody) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showExportAabConfirm = false
+                    onExportAab()
+                }) { Text(Strings.confirm) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showExportAabConfirm = false
+                }) { Text(Strings.btnCancel) }
+            }
+        )
+    }
 
     buildFailureReport?.let { report ->
         BuildFailureReportDialog(
