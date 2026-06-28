@@ -2,6 +2,7 @@ package com.webtoapp.core.extension
 
 import android.content.Context
 import android.net.Uri
+import com.webtoapp.core.i18n.Strings
 import com.webtoapp.core.logging.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -51,6 +52,15 @@ class ExtensionFileManager(private val context: Context) {
 
     private val httpClient get() = NetworkModule.defaultClient
 
+    data class DownloadProgress(
+        val phase: String,
+        val downloadedBytes: Long,
+        val totalBytes: Long,
+        val speedBytesPerSec: Long
+    ) {
+        val fraction: Float get() = if (totalBytes > 0) downloadedBytes.toFloat() / totalBytes else 0f
+    }
+
     sealed class ImportResult {
         data class UserScript(
             val parseResult: UserScriptParser.ParseResult
@@ -58,7 +68,8 @@ class ExtensionFileManager(private val context: Context) {
 
         data class ChromeExtension(
             val parseResult: ChromeExtensionParser.ParseResult,
-            val extractedDir: File
+            val extractedDir: File,
+            val storeId: String = ""
         ) : ImportResult()
 
         data class JsPackage(
@@ -119,17 +130,20 @@ class ExtensionFileManager(private val context: Context) {
         }
     }
 
-    suspend fun installChromeExtensionFromStore(storeId: String): ImportResult = withContext(Dispatchers.IO) {
+    suspend fun installChromeExtensionFromStore(
+        storeId: String,
+        onProgress: (DownloadProgress) -> Unit = {}
+    ): ImportResult = withContext(Dispatchers.IO) {
         val cleanId = storeId.trim()
         if (cleanId.isEmpty() || !cleanId.all { it.isLetterOrDigit() }) {
             return@withContext ImportResult.Error("Invalid extension id")
         }
         val crxFile = File(tempDir, "store_${cleanId}_${System.currentTimeMillis()}.crx")
         try {
-            if (!downloadCrxFromStore(cleanId, crxFile)) {
+            if (!downloadCrxFromStore(cleanId, crxFile, onProgress)) {
                 return@withContext ImportResult.Error("Failed to download extension from store")
             }
-            importChromeExtensionFromFile(crxFile)
+            importChromeExtensionFromFile(crxFile, cleanId)
         } catch (e: Exception) {
             AppLogger.e(TAG, "Failed to install Chrome extension from store: $cleanId", e)
             ImportResult.Error("Install failed: ${e.message}")
@@ -138,7 +152,11 @@ class ExtensionFileManager(private val context: Context) {
         }
     }
 
-    private fun downloadCrxFromStore(storeId: String, dest: File): Boolean {
+    private fun downloadCrxFromStore(
+        storeId: String,
+        dest: File,
+        onProgress: (DownloadProgress) -> Unit
+    ): Boolean {
         val prodVersions = listOf("132.0.0.0", "120.0.0.0", "124.0.0.0", "138.0.0.0")
         for (pv in prodVersions) {
             try {
@@ -152,19 +170,37 @@ class ExtensionFileManager(private val context: Context) {
                 httpClient.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@use
                     val body = response.body ?: return@use
+                    val reportedTotal = body.contentLength().coerceAtLeast(0L)
                     dest.outputStream().use { out ->
                         var total = 0L
+                        var lastEmit = 0L
+                        var startTime = 0L
                         val buffer = ByteArray(64 * 1024)
                         body.byteStream().use { input ->
                             while (true) {
                                 val read = input.read(buffer)
                                 if (read == -1) break
+                                if (startTime == 0L) startTime = System.currentTimeMillis()
                                 total += read
                                 if (total > MAX_EXTENSION_SIZE) {
                                     AppLogger.w(TAG, "CRX exceeds max size, aborting: $storeId")
                                     return false
                                 }
                                 out.write(buffer, 0, read)
+                                val now = System.currentTimeMillis()
+                                if (now - lastEmit > 150) {
+                                    lastEmit = now
+                                    val elapsedSec = ((now - startTime).coerceAtLeast(1L)) / 1000.0
+                                    val speed = if (elapsedSec > 0) (total / elapsedSec).toLong() else 0L
+                                    onProgress(
+                                        DownloadProgress(
+                                            phase = Strings.cwsDlModule,
+                                            downloadedBytes = total,
+                                            totalBytes = reportedTotal,
+                                            speedBytesPerSec = speed
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
@@ -180,7 +216,45 @@ class ExtensionFileManager(private val context: Context) {
         return false
     }
 
-    suspend fun importChromeExtensionFromFile(file: File): ImportResult = withContext(Dispatchers.IO) {
+    fun downloadIconForExtension(iconUrl: String, targetDir: File): File? {
+        if (iconUrl.isBlank()) return null
+        return try {
+            val request = Request.Builder()
+                .url(iconUrl)
+                .header("User-Agent", "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/138.0.0.0 Mobile Safari/537.36")
+                .build()
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
+                val body = response.body ?: return null
+                val contentType = body.contentType()?.toString().orEmpty()
+                val ext = when {
+                    contentType.contains("png") -> "png"
+                    contentType.contains("jpeg") || contentType.contains("jpg") -> "jpg"
+                    contentType.contains("webp") -> "webp"
+                    contentType.contains("gif") -> "gif"
+                    iconUrl.contains(".png") -> "png"
+                    iconUrl.contains(".jpg") || iconUrl.contains(".jpeg") -> "jpg"
+                    iconUrl.contains(".webp") -> "webp"
+                    else -> "png"
+                }
+                targetDir.mkdirs()
+                val iconFile = File(targetDir, "store_icon.$ext")
+                val bytes = body.bytes()
+                if (bytes.isEmpty() || bytes.size > 2 * 1024 * 1024) return null
+                iconFile.writeBytes(bytes)
+                AppLogger.d(TAG, "Downloaded store icon for ${targetDir.name} (${bytes.size} bytes)")
+                iconFile
+            }
+        } catch (e: Exception) {
+            AppLogger.w(TAG, "Failed to download store icon: $iconUrl", e)
+            null
+        }
+    }
+
+    suspend fun importChromeExtensionFromFile(
+        file: File,
+        storeId: String? = null
+    ): ImportResult = withContext(Dispatchers.IO) {
         try {
             val extensionId = UUID.randomUUID().toString().take(12)
             val extractDir = File(extensionsDir, extensionId)
@@ -211,7 +285,11 @@ class ExtensionFileManager(private val context: Context) {
                 )
             }
 
-            val parseResult = ChromeExtensionParser.parseFromDirectory(actualDir, overrideExtensionId = extensionId)
+            val parseResult = ChromeExtensionParser.parseFromDirectory(
+                actualDir,
+                overrideExtensionId = extensionId,
+                storeId = storeId
+            )
 
             if (!parseResult.isValid) {
                 extractDir.deleteRecursively()
@@ -220,7 +298,7 @@ class ExtensionFileManager(private val context: Context) {
                 )
             }
 
-            ImportResult.ChromeExtension(parseResult, actualDir)
+            ImportResult.ChromeExtension(parseResult, actualDir, storeId = storeId.orEmpty())
         } catch (e: Exception) {
             AppLogger.e(TAG, "Failed to import Chrome extension from file", e)
             ImportResult.Error("Import failed: ${e.message}")

@@ -117,16 +117,37 @@ private fun currentStyleName(style: AnnouncementTemplate): String = when (style)
         AppLanguage.CHINESE -> Strings.announcementStyleClean
         AppLanguage.ENGLISH -> Strings.announcementStyleClean
         AppLanguage.ARABIC -> Strings.announcementStyleClean
+        AppLanguage.PORTUGUESE ->Strings.announcementStyleClean
+        AppLanguage.SPANISH ->Strings.announcementStyleClean
+        AppLanguage.FRENCH ->Strings.announcementStyleClean
+        AppLanguage.GERMAN ->Strings.announcementStyleClean
+        AppLanguage.RUSSIAN ->Strings.announcementStyleClean
+        AppLanguage.JAPANESE ->Strings.announcementStyleClean
+        AppLanguage.KOREAN ->Strings.announcementStyleClean
     }
     AnnouncementTemplate.GRADIENT -> when (Strings.currentLanguage.value) {
         AppLanguage.CHINESE -> Strings.announcementStyleAccent
         AppLanguage.ENGLISH -> Strings.announcementStyleAccent
         AppLanguage.ARABIC -> Strings.announcementStyleAccent
+        AppLanguage.PORTUGUESE ->Strings.announcementStyleAccent
+        AppLanguage.SPANISH ->Strings.announcementStyleAccent
+        AppLanguage.FRENCH ->Strings.announcementStyleAccent
+        AppLanguage.GERMAN ->Strings.announcementStyleAccent
+        AppLanguage.RUSSIAN ->Strings.announcementStyleAccent
+        AppLanguage.JAPANESE ->Strings.announcementStyleAccent
+        AppLanguage.KOREAN ->Strings.announcementStyleAccent
     }
     AnnouncementTemplate.DARK -> when (Strings.currentLanguage.value) {
         AppLanguage.CHINESE -> Strings.announcementStyleDark
         AppLanguage.ENGLISH -> Strings.announcementStyleDark
         AppLanguage.ARABIC -> Strings.announcementStyleDark
+        AppLanguage.PORTUGUESE ->Strings.announcementStyleDark
+        AppLanguage.SPANISH ->Strings.announcementStyleDark
+        AppLanguage.FRENCH ->Strings.announcementStyleDark
+        AppLanguage.GERMAN ->Strings.announcementStyleDark
+        AppLanguage.RUSSIAN ->Strings.announcementStyleDark
+        AppLanguage.JAPANESE ->Strings.announcementStyleDark
+        AppLanguage.KOREAN ->Strings.announcementStyleDark
     }
     else -> ""
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +27,38 @@ import com.webtoapp.core.i18n.AppLanguage
 import com.webtoapp.core.i18n.LanguageManager
 import com.webtoapp.util.isRunningOnTv
 import kotlinx.coroutines.launch
+
+@Composable
+private fun LanguageDisplayNameWithBadge(
+    language: AppLanguage,
+    isSelected: Boolean
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = language.displayName,
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        )
+        if (language.translationInProgress) {
+            Spacer(modifier = Modifier.width(6.dp))
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                color = MaterialTheme.colorScheme.tertiaryContainer
+            ) {
+                Text(
+                    text = com.webtoapp.core.i18n.Strings.translationInProgressBadge,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun LanguageSelectorButton(
@@ -142,15 +175,7 @@ private fun LanguageOption(
                         MaterialTheme.colorScheme.onSurface
                     }
                 )
-                Text(
-                    text = language.displayName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                LanguageDisplayNameWithBadge(language = language, isSelected = isSelected)
             }
 
             androidx.compose.animation.AnimatedVisibility(
@@ -244,19 +269,19 @@ fun FirstLaunchLanguageScreen(
                 MaterialTheme.typography.headlineMedium
             }
             Text(
-                text = "Welcome",
-                style = welcomeHeadlineStyle,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "欢迎",
-                style = welcomeHeadlineStyle,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "مرحبا",
+                text = when (selectedLanguage) {
+                    AppLanguage.CHINESE -> "欢迎"
+                    AppLanguage.ENGLISH -> "Welcome"
+                    AppLanguage.ARABIC -> "مرحبا"
+                    AppLanguage.PORTUGUESE -> "Bem-vindo"
+                    AppLanguage.SPANISH -> "Bienvenido"
+                    AppLanguage.FRENCH -> "Bienvenue"
+                    AppLanguage.GERMAN -> "Willkommen"
+                    AppLanguage.RUSSIAN -> "Добро пожаловать"
+                    AppLanguage.JAPANESE -> "ようこそ"
+                    AppLanguage.KOREAN -> "환영합니다"
+                    null -> "Welcome / 欢迎 / مرحبا"
+                },
                 style = welcomeHeadlineStyle,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
@@ -265,19 +290,19 @@ fun FirstLaunchLanguageScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Select Language",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "选择语言",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "اختر اللغة",
+                text = when (selectedLanguage) {
+                    AppLanguage.CHINESE -> "选择语言"
+                    AppLanguage.ENGLISH -> "Select Language"
+                    AppLanguage.ARABIC -> "اختر اللغة"
+                    AppLanguage.PORTUGUESE -> "Selecione o Idioma"
+                    AppLanguage.SPANISH -> "Selecciona el Idioma"
+                    AppLanguage.FRENCH -> "Sélectionner la Langue"
+                    AppLanguage.GERMAN -> "Sprache Auswählen"
+                    AppLanguage.RUSSIAN -> "Выберите Язык"
+                    AppLanguage.JAPANESE -> "言語を選択"
+                    AppLanguage.KOREAN -> "언어 선택"
+                    null -> "Select Language / 选择语言 / اختر اللغة"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -323,6 +348,13 @@ fun FirstLaunchLanguageScreen(
                         AppLanguage.CHINESE -> "确认"
                         AppLanguage.ENGLISH -> "Confirm"
                         AppLanguage.ARABIC -> "تأكيد"
+                        AppLanguage.PORTUGUESE -> "Confirmar"
+                        AppLanguage.SPANISH -> "Confirmar"
+                        AppLanguage.FRENCH -> "Confirmer"
+                        AppLanguage.GERMAN -> "Bestätigen"
+                        AppLanguage.RUSSIAN -> "Подтвердить"
+                        AppLanguage.JAPANESE -> "確認"
+                        AppLanguage.KOREAN -> "확인"
                         null -> "Confirm / 确认 / تأكيد"
                     },
                     style = MaterialTheme.typography.titleMedium
@@ -381,15 +413,7 @@ private fun FirstLaunchLanguageOption(
                         MaterialTheme.colorScheme.onSurface
                     }
                 )
-                Text(
-                    text = language.displayName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                LanguageDisplayNameWithBadge(language = language, isSelected = isSelected)
             }
 
             androidx.compose.animation.AnimatedVisibility(

@@ -513,6 +513,10 @@ data class ExtensionModule(
 
     @SerializedName("chromeExtId")
     val chromeExtId: String = "",
+    @SerializedName("storeIconPath")
+    val storeIconPath: String = "",
+    @SerializedName("storeTags")
+    val storeTags: List<String> = emptyList(),
     @SerializedName("world")
     val world: String = "ISOLATED",
     @SerializedName("backgroundScript")

@@ -16,6 +16,13 @@ object SampleProjectManager {
             AppLanguage.CHINESE -> ""
             AppLanguage.ENGLISH -> "-en"
             AppLanguage.ARABIC -> "-ar"
+            AppLanguage.PORTUGUESE -> "-en"
+            AppLanguage.SPANISH -> "-en"
+            AppLanguage.FRENCH -> "-en"
+            AppLanguage.GERMAN -> "-en"
+            AppLanguage.RUSSIAN -> "-en"
+            AppLanguage.JAPANESE -> "-en"
+            AppLanguage.KOREAN -> "-en"
         }
     }
 

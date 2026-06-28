@@ -16,11 +16,19 @@ enum class AppLanguage(
     val displayName: String,
     val nativeName: String,
     val locale: Locale,
-    val isRtl: Boolean = false
+    val isRtl: Boolean = false,
+    val translationInProgress: Boolean = false
 ) {
     CHINESE("zh", "Chinese", "中文", Locale.CHINESE),
     ENGLISH("en", "English", "English", Locale.ENGLISH),
-    ARABIC("ar", "Arabic", "العربية", Locale("ar"), isRtl = true);
+    ARABIC("ar", "Arabic", "العربية", Locale("ar"), isRtl = true),
+    PORTUGUESE("pt", "Portuguese", "Português", Locale("pt"), translationInProgress = true),
+    SPANISH("es", "Spanish", "Español", Locale("es"), translationInProgress = true),
+    FRENCH("fr", "French", "Français", Locale("fr"), translationInProgress = true),
+    GERMAN("de", "German", "Deutsch", Locale("de"), translationInProgress = true),
+    RUSSIAN("ru", "Russian", "Русский", Locale("ru"), translationInProgress = true),
+    JAPANESE("ja", "Japanese", "日本語", Locale.JAPANESE, translationInProgress = true),
+    KOREAN("ko", "Korean", "한국어", Locale.KOREAN, translationInProgress = true);
 
     companion object {
         fun fromCode(code: String): AppLanguage {
@@ -55,9 +63,16 @@ class LanguageManager(private val context: Context) {
 
     private fun getSystemLanguageCode(): String {
         val systemLocale = Locale.getDefault()
-        return when {
-            systemLocale.language == "zh" -> "zh"
-            systemLocale.language == "ar" -> "ar"
+        return when (systemLocale.language) {
+            "zh" -> "zh"
+            "ar" -> "ar"
+            "pt" -> "pt"
+            "es" -> "es"
+            "fr" -> "fr"
+            "de" -> "de"
+            "ru" -> "ru"
+            "ja" -> "ja"
+            "ko" -> "ko"
             else -> "en"
         }
     }

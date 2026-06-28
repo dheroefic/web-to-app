@@ -77,6 +77,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.webtoapp.core.extension.ExtensionManager
 import com.webtoapp.core.extension.ModuleCategory
+import com.webtoapp.core.extension.ModuleSourceType
 import com.webtoapp.core.i18n.Strings
 import com.webtoapp.core.market.InstallProgress
 import com.webtoapp.core.market.MarketInstallState
@@ -86,6 +87,9 @@ import com.webtoapp.core.market.ModuleMarketEntry
 import com.webtoapp.core.market.ModuleMarketRepository
 import com.webtoapp.core.market.ModuleSubmission
 import com.webtoapp.core.market.ModuleSubmitter
+import com.webtoapp.core.market.ChromeWebStoreSearch
+import com.webtoapp.core.market.CwsSearchResult
+import com.webtoapp.core.market.CwsTags
 import com.webtoapp.ui.components.PremiumFilterChip
 import com.webtoapp.ui.components.PremiumTextField
 import com.webtoapp.ui.design.WtaBackground
@@ -129,6 +133,7 @@ fun ModuleMarketScreen(
 
     val state by repo.state.collectAsState()
     var views by remember { mutableStateOf<List<MarketModuleView>>(emptyList()) }
+    val installedModules by extensionManager.modules.collectAsState()
 
     LaunchedEffect(repo) {
         repo.views.collectLatest { views = it }
@@ -162,6 +167,66 @@ fun ModuleMarketScreen(
     val filteredCustom = filtered.filter { it.entry.sourceType != "CHROME_EXTENSION" }
     val filteredChromeExt = filtered.filter { it.entry.sourceType == "CHROME_EXTENSION" }
     val currentList = if (selectedTab == 0) filteredCustom else filteredChromeExt
+
+    var cwsResults by remember { mutableStateOf<List<CwsSearchResult>>(emptyList()) }
+    var cwsSearching by remember { mutableStateOf(false) }
+    var cwsError by remember { mutableStateOf<String?>(null) }
+    var cwsHasSearched by remember { mutableStateOf(false) }
+    var cwsQuery by remember { mutableStateOf("") }
+
+    val currentLocale = remember {
+        val tag = java.util.Locale.getDefault().language
+        if (tag.startsWith("zh")) "zh-CN" else if (tag.startsWith("ar")) "ar" else "en"
+    }
+
+    LaunchedEffect(searchQuery, selectedTab) {
+        if (selectedTab != 1) return@LaunchedEffect
+        val trimmed = searchQuery.trim()
+        cwsQuery = trimmed
+        if (trimmed.isEmpty()) {
+            cwsResults = emptyList()
+            cwsSearching = false
+            cwsError = null
+            cwsHasSearched = false
+            return@LaunchedEffect
+        }
+        kotlinx.coroutines.delay(450)
+        cwsSearching = true
+        cwsError = null
+        val result = ChromeWebStoreSearch.search(trimmed, currentLocale)
+        if (cwsQuery != trimmed) return@LaunchedEffect
+        cwsSearching = false
+        cwsHasSearched = true
+        result.onSuccess { cwsResults = it }
+            .onFailure { cwsError = it.message ?: Strings.cwsSearchFailed }
+    }
+
+    val cwsViews = remember(cwsResults, installingId, installedModules) {
+        cwsResults.map { r ->
+            val tags = CwsTags.fromName(r.name)
+            val entry = ModuleMarketEntry(
+                id = "cws-${r.storeId}",
+                path = "",
+                name = r.name,
+                description = "",
+                icon = "package",
+                category = "OTHER",
+                tags = tags.map { it.label },
+                iconUrl = r.iconUrl,
+                sourceType = "CHROME_EXTENSION",
+                storeId = r.storeId
+            )
+            val installed = installedModules.firstOrNull {
+                it.sourceType == ModuleSourceType.CHROME_EXTENSION && it.chromeExtId == r.storeId
+            }
+            MarketModuleView(
+                entry = entry,
+                state = if (installed != null) MarketInstallState.UpToDate else MarketInstallState.NotInstalled,
+                installedVersion = installed?.version?.name,
+                submission = null
+            )
+        }
+    }
 
     val aggregatedContributors = remember(views) { aggregateContributors(views) }
     var showContributors by remember { mutableStateOf(false) }
@@ -239,7 +304,9 @@ fun ModuleMarketScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text(Strings.moduleMarketSearchHint) },
+                    placeholder = {
+                        Text(if (selectedTab == 1) Strings.cwsSearchHint else Strings.moduleMarketSearchHint)
+                    },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     trailingIcon = {
                         if (searchQuery.isNotBlank()) {
@@ -288,94 +355,144 @@ fun ModuleMarketScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
 
-                when (val s = state) {
-                    is MarketState.Idle, is MarketState.Loading -> {
-                        if (views.isEmpty()) {
-                            LoadingPlaceholder()
-                        } else {
-                            ModuleListContent(
-                                items = currentList,
-                                installingId = installingId,
-                                installProgress = installProgress,
-                                onInstall = { entry ->
-                                    installingId = entry.id
-                                    installProgress = null
-                                    scope.launch {
-                                        installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
-                                            installProgress = progress
-                                        }
-                                        installingId = null
-                                        installProgress = null
-                                    }
-                                },
-                                onOpenSource = { entry ->
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(repo.githubUrl(entry)))
-                                    )
-                                },
-                                onOpenPullRequest = { url ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                },
-                                onOpenSubmitter = { url ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                },
-                                onOpenContributing = {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
-                                },
-                                resolveIcon = { entry -> repo.resolveIconUrl(entry) },
-                                listState = listState,
-                                highlightModuleId = highlightModuleId
-                            )
-                        }
-                    }
-                    is MarketState.Loaded -> {
-                        if (currentList.isEmpty()) {
-                            EmptyState(
-                                searchQuery = searchQuery,
-                                onOpenContributing = {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
+                if (selectedTab == 1) {
+                    CwsSearchContent(
+                        query = searchQuery.trim(),
+                        results = cwsViews,
+                        isSearching = cwsSearching,
+                        hasSearched = cwsHasSearched,
+                        errorMessage = cwsError,
+                        installingId = installingId,
+                        installProgress = installProgress,
+                        onInstall = { entry ->
+                            installingId = entry.id
+                            installProgress = null
+                            scope.launch {
+                                installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
+                                    installProgress = progress
                                 }
+                                installingId = null
+                                installProgress = null
+                            }
+                        },
+                        onOpenSource = { entry ->
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(repo.githubUrl(entry)))
                             )
-                        } else {
-                            ModuleListContent(
-                                items = currentList,
-                                installingId = installingId,
-                                installProgress = installProgress,
-                                onInstall = { entry ->
-                                    installingId = entry.id
-                                    installProgress = null
-                                    scope.launch {
-                                        installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
-                                            installProgress = progress
-                                        }
-                                        installingId = null
+                        },
+                        onInstallById = { storeId ->
+                            val entry = ModuleMarketEntry(
+                                id = "cws-$storeId",
+                                path = "",
+                                name = storeId,
+                                description = "",
+                                icon = "package",
+                                category = "OTHER",
+                                sourceType = "CHROME_EXTENSION",
+                                storeId = storeId
+                            )
+                            installingId = entry.id
+                            installProgress = null
+                            scope.launch {
+                                installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
+                                    installProgress = progress
+                                }
+                                installingId = null
+                                installProgress = null
+                            }
+                        },
+                        listState = listState
+                    )
+                } else {
+                    when (val s = state) {
+                        is MarketState.Idle, is MarketState.Loading -> {
+                            if (views.isEmpty()) {
+                                LoadingPlaceholder()
+                            } else {
+                                ModuleListContent(
+                                    items = currentList,
+                                    installingId = installingId,
+                                    installProgress = installProgress,
+                                    onInstall = { entry ->
+                                        installingId = entry.id
                                         installProgress = null
-                                    }
-                                },
-                                onOpenSource = { entry ->
-                                    context.startActivity(
-                                        Intent(Intent.ACTION_VIEW, Uri.parse(repo.githubUrl(entry)))
-                                    )
-                                },
-                                onOpenPullRequest = { url ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                },
-                                onOpenSubmitter = { url ->
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                },
-                                onOpenContributing = {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
-                                },
-                                resolveIcon = { entry -> repo.resolveIconUrl(entry) },
-                                listState = listState,
-                                highlightModuleId = highlightModuleId
-                            )
+                                        scope.launch {
+                                            installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
+                                                installProgress = progress
+                                            }
+                                            installingId = null
+                                            installProgress = null
+                                        }
+                                    },
+                                    onOpenSource = { entry ->
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse(repo.githubUrl(entry)))
+                                        )
+                                    },
+                                    onOpenPullRequest = { url ->
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                    },
+                                    onOpenSubmitter = { url ->
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                    },
+                                    onOpenContributing = {
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
+                                    },
+                                    resolveIcon = { entry -> repo.resolveIconUrl(entry) },
+                                    listState = listState,
+                                    highlightModuleId = highlightModuleId
+                                )
+                            }
                         }
-                    }
-                    is MarketState.Error -> {
-                        ErrorState(message = s.message, onRetry = {
-                            scope.launch { repo.refresh(force = true) }
-                        })
+                        is MarketState.Loaded -> {
+                            if (currentList.isEmpty()) {
+                                EmptyState(
+                                    searchQuery = searchQuery,
+                                    onOpenContributing = {
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
+                                    }
+                                )
+                            } else {
+                                ModuleListContent(
+                                    items = currentList,
+                                    installingId = installingId,
+                                    installProgress = installProgress,
+                                    onInstall = { entry ->
+                                        installingId = entry.id
+                                        installProgress = null
+                                        scope.launch {
+                                            installModule(entry, repo, snackbarHostState, context.applicationContext) { progress ->
+                                                installProgress = progress
+                                            }
+                                            installingId = null
+                                            installProgress = null
+                                        }
+                                    },
+                                    onOpenSource = { entry ->
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse(repo.githubUrl(entry)))
+                                        )
+                                    },
+                                    onOpenPullRequest = { url ->
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                    },
+                                    onOpenSubmitter = { url ->
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                    },
+                                    onOpenContributing = {
+                                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(repo.contributingUrl)))
+                                    },
+                                    resolveIcon = { entry -> repo.resolveIconUrl(entry) },
+                                    listState = listState,
+                                    highlightModuleId = highlightModuleId
+                                )
+                            }
+                        }
+                        is MarketState.Error -> {
+                            ErrorState(message = s.message, onRetry = {
+                                scope.launch { repo.refresh(force = true) }
+                            })
+                        }
                     }
                 }
             }
@@ -505,6 +622,250 @@ private fun ModuleListContent(
             )
         }
     }
+}
+
+@Composable
+private fun CwsSearchContent(
+    query: String,
+    results: List<MarketModuleView>,
+    isSearching: Boolean,
+    hasSearched: Boolean,
+    errorMessage: String?,
+    installingId: String?,
+    installProgress: InstallProgress?,
+    onInstall: (ModuleMarketEntry) -> Unit,
+    onOpenSource: (ModuleMarketEntry) -> Unit,
+    onInstallById: (String) -> Unit,
+    listState: androidx.compose.foundation.lazy.LazyListState
+) {
+    when {
+        isSearching -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        Strings.cwsSearching,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        errorMessage != null -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    Strings.cwsSearchFailed,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+                CwsInstallByIdRow(onInstallById = onInstallById)
+            }
+        }
+        query.isEmpty() -> {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    Strings.cwsSearchIntro,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        results.isEmpty() && hasSearched -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    Strings.cwsNoResults,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        else -> {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(results, key = { it.entry.id }) { view ->
+                    CwsResultCard(
+                        view = view,
+                        isInstalling = installingId == view.entry.id,
+                        installProgress = if (installingId == view.entry.id) installProgress else null,
+                        onInstall = { onInstall(view.entry) },
+                        onOpenSource = { onOpenSource(view.entry) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun CwsResultCard(
+    view: MarketModuleView,
+    isInstalling: Boolean,
+    installProgress: InstallProgress?,
+    onInstall: () -> Unit,
+    onOpenSource: () -> Unit
+) {
+    WtaCard(
+        modifier = Modifier.fillMaxWidth(),
+        tone = WtaCardTone.Surface,
+        contentPadding = PaddingValues(WtaSpacing.Large)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ModuleIcon(
+                iconUrl = view.entry.iconUrl,
+                fallbackLetter = view.entry.name.take(1).uppercase(),
+                size = 48.dp
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    view.entry.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (view.entry.tags.isNotEmpty()) {
+                    Spacer(Modifier.height(6.dp))
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        view.entry.tags.take(3).forEach { tag ->
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Text(
+                                    tag,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        if (isInstalling && installProgress != null) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        installProgress.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (installProgress.hasByteProgress && installProgress.speedBytesPerSec >= 0) {
+                        Text(
+                            "${formatBytes(installProgress.downloadedBytes)} / ${formatBytes(installProgress.totalBytes)}  ·  ${formatSpeed(installProgress.speedBytesPerSec)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                if (installProgress.hasByteProgress) {
+                    LinearProgressIndicator(
+                        progress = { installProgress.byteFraction },
+                        modifier = Modifier.fillMaxWidth().height(4.dp)
+                    )
+                }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onOpenSource, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.OpenInNew, contentDescription = Strings.moduleMarketViewSource)
+                }
+                Spacer(Modifier.weight(1f))
+                InstallButton(
+                    state = view.state,
+                    isInstalling = false,
+                    installProgress = null,
+                    onClick = onInstall
+                )
+            }
+        }
+    }
+}
+
+private fun formatBytes(bytes: Long): String {
+    if (bytes < 1024) return "${bytes}B"
+    val kb = bytes / 1024.0
+    if (kb < 1024) return String.format(java.util.Locale.US, "%.1fKB", kb)
+    val mb = kb / 1024.0
+    return String.format(java.util.Locale.US, "%.1fMB", mb)
+}
+
+private fun formatSpeed(bytesPerSec: Long): String {
+    if (bytesPerSec < 1024) return "${bytesPerSec}B/s"
+    val kb = bytesPerSec / 1024.0
+    if (kb < 1024) return String.format(java.util.Locale.US, "%.0fKB/s", kb)
+    val mb = kb / 1024.0
+    return String.format(java.util.Locale.US, "%.1fMB/s", mb)
+}
+
+@Composable
+private fun CwsInstallByIdRow(onInstallById: (String) -> Unit) {
+    var idInput by remember { mutableStateOf("") }
+    val cleanId = idInput.trim().lowercase()
+    val extracted = extractStoreId(cleanId)
+    val canInstall = extracted.length == 32 && extracted.all { it.isLetterOrDigit() }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        PremiumTextField(
+            value = idInput,
+            onValueChange = { idInput = it },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(Strings.browserExtStoreInstallByIdHint) },
+            singleLine = true,
+            shape = RoundedCornerShape(WtaRadius.Button)
+        )
+        WtaButton(
+            onClick = {
+                if (canInstall) {
+                    onInstallById(extracted)
+                    idInput = ""
+                }
+            },
+            text = Strings.moduleMarketInstall,
+            variant = WtaButtonVariant.Primary,
+            size = WtaButtonSize.Small,
+            enabled = canInstall,
+            leadingIcon = Icons.Default.CloudDownload
+        )
+    }
+}
+
+private fun extractStoreId(input: String): String {
+    if (input.length == 32 && input.all { it.isLetterOrDigit() }) return input
+    val patterns = listOf(
+        Regex("/detail/[^/]*/([a-z]{32})"),
+        Regex("([a-z]{32})")
+    )
+    for (pattern in patterns) {
+        pattern.find(input)?.let { return it.groupValues[1] }
+    }
+    return input
 }
 
 @Composable

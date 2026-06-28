@@ -1138,7 +1138,7 @@ fun ExtensionModuleScreen(
         }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun ModuleCard(
     module: ExtensionModule,
@@ -1211,12 +1211,23 @@ fun ModuleCard(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    com.webtoapp.ui.components.ModuleIcon(
-                        iconId = module.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    val storeIconFile = remember(module.storeIconPath) {
+                        module.storeIconPath.takeIf { it.isNotBlank() }?.let { java.io.File(it) }
+                    }
+                    if (storeIconFile != null && storeIconFile.exists()) {
+                        coil.compose.AsyncImage(
+                            model = storeIconFile,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(WtaRadius.IconPlate))
+                        )
+                    } else {
+                        com.webtoapp.ui.components.ModuleIcon(
+                            iconId = module.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -1274,6 +1285,28 @@ fun ModuleCard(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
+                    }
+
+                    if (module.storeTags.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        androidx.compose.foundation.layout.FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            module.storeTags.take(3).forEach { tag ->
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer
+                                ) {
+                                    Text(
+                                        tag,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

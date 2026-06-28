@@ -139,6 +139,13 @@ object RandomAppNameGenerator {
             AppLanguage.CHINESE -> generateChinese()
             AppLanguage.ENGLISH -> generateEnglish()
             AppLanguage.ARABIC -> generateArabic()
+            AppLanguage.PORTUGUESE -> generateEnglish()
+            AppLanguage.SPANISH -> generateEnglish()
+            AppLanguage.FRENCH -> generateEnglish()
+            AppLanguage.GERMAN -> generateEnglish()
+            AppLanguage.RUSSIAN -> generateEnglish()
+            AppLanguage.JAPANESE -> generateEnglish()
+            AppLanguage.KOREAN -> generateEnglish()
         }
     }
 
@@ -147,6 +154,13 @@ object RandomAppNameGenerator {
             AppLanguage.CHINESE -> generateChinese()
             AppLanguage.ENGLISH -> generateEnglish()
             AppLanguage.ARABIC -> generateArabic()
+            AppLanguage.PORTUGUESE -> generateEnglish()
+            AppLanguage.SPANISH -> generateEnglish()
+            AppLanguage.FRENCH -> generateEnglish()
+            AppLanguage.GERMAN -> generateEnglish()
+            AppLanguage.RUSSIAN -> generateEnglish()
+            AppLanguage.JAPANESE -> generateEnglish()
+            AppLanguage.KOREAN -> generateEnglish()
         }
     }
 

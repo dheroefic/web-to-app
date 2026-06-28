@@ -90,7 +90,7 @@ This trade-off only applies to the host and to fork-based runtime apps. Generate
 
 ## Module Market
 
-WebToApp has a GitHub-backed module market for community JS/CSS extensions. The catalog is just files in this repository, so contributions use a normal pull request flow.
+WebToApp has a GitHub-backed module market for community JS/CSS extension modules. The catalog is just files in this repository, so contributions use a normal pull request flow.
 
 ```
 modules/
@@ -110,7 +110,7 @@ The app fetches both `registry.json` and `submissions.json`, and only shows modu
 - Contributors add a folder under `modules/`, update `registry.json`, and open a PR.
 - The default client cache is one hour, so merged modules propagate without an app update.
 
-[Module contributor guide](modules/README.md) · [General contributing guide](.github/CONTRIBUTING.md)
+The community market only carries JS/CSS extension modules. Browser extensions (MV3 Chrome extensions) are no longer a community catalog — instead the **Browser Extensions** tab searches the Chrome Web Store live: type a keyword, browse results, and install on demand through the existing CRX download pipeline. If live search is unreachable, you can still install any extension by pasting its store URL or 32-character ID. Live search requires a network that can reach Google.
 
 ## Feature Map
 
@@ -136,6 +136,7 @@ The full app has many switches. The sections below group the important ones with
 - Userscript support for Greasemonkey/Tampermonkey-style `.user.js` scripts.
 - `GM_*` bridge with storage, requests, styles, menu commands, and promise-based `GM.*` APIs based on script grants.
 - MV3 Chrome extension runtime for manifest-based content scripts in isolated or main worlds.
+- In-app Chrome Web Store search: browse and install browser extensions by keyword (or paste a store URL / extension ID), with offline fallback to manual import.
 - `chrome.*` polyfills for runtime, storage, tabs, scripting, and declarative network request parsing.
 - Export codes (`WTA1:` gzip + Base64) and QR sharing through ZXing.
 - AI Coding skills for generating modules, userscripts, MV3 extensions, front-end apps, and local runtime projects.

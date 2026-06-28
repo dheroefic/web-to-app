@@ -12,6 +12,13 @@ object AiPromptManager {
             AppLanguage.CHINESE -> getChineseSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
             AppLanguage.ENGLISH -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
             AppLanguage.ARABIC -> getArabicSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.PORTUGUESE -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.SPANISH -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.FRENCH -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.GERMAN -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.RUSSIAN -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.JAPANESE -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
+            AppLanguage.KOREAN -> getEnglishSystemPrompt(categoryHint, existingCodeHint, nativeBridgeApi)
         }
     }
 
@@ -61,6 +68,104 @@ $code
 يرجى إخراج الكود المصحح الكامل فقط، ملفوفًا في كتلة كود ```javascript.
 لا تضف أي تفسيرات، فقط أخرج الكود.
             """.trimIndent()
+            AppLanguage.PORTUGUESE -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.SPANISH -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.FRENCH -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.GERMAN -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.RUSSIAN -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.JAPANESE -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
+            AppLanguage.KOREAN -> """
+Please fix the syntax errors in the following JavaScript code (Attempt $attempt/$maxAttempts):
+
+**Error List**:
+$errorMessages
+
+**Original Code**:
+```javascript
+$code
+```
+
+Please output only the fixed complete code, wrapped in ```javascript code block.
+Do not add any explanations, only output the code.
+            """.trimIndent()
         }
     }
 
@@ -69,6 +174,13 @@ $code
             AppLanguage.CHINESE -> "你是一个 JavaScript 代码修复专家。请修复代码中的语法错误，保持原有功能不变。只输出修复后的代码，不要添加任何解释。"
             AppLanguage.ENGLISH -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
             AppLanguage.ARABIC -> "أنت خبير في إصلاح كود JavaScript. يرجى إصلاح أخطاء بناء الجملة في الكود مع الحفاظ على الوظائف الأصلية. أخرج الكود المصحح فقط، لا تضف أي تفسيرات."
+            AppLanguage.PORTUGUESE -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.SPANISH -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.FRENCH -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.GERMAN -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.RUSSIAN -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.JAPANESE -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
+            AppLanguage.KOREAN -> "You are a JavaScript code fix expert. Please fix syntax errors in the code while keeping the original functionality. Only output the fixed code, do not add any explanations."
         }
     }
 
@@ -113,6 +225,83 @@ $code
                     append("\n**الكود الحالي** (يرجى التعديل بناءً على هذا):\n```javascript\n$existingCode\n```\n")
                 }
                 append("\nيرجى إنشاء كود الوحدة الكامل وضمان جودة الكود والأمان.")
+            }
+            AppLanguage.PORTUGUESE -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.SPANISH -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.FRENCH -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.GERMAN -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.RUSSIAN -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.JAPANESE -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
+            }
+            AppLanguage.KOREAN -> buildString {
+                append("Please develop an extension module based on the following requirements:\n\n")
+                append("**Requirement Description**: $requirement\n")
+                if (categoryName != null) {
+                    append("\n**Target Category**: $categoryName\n")
+                }
+                if (!existingCode.isNullOrBlank()) {
+                    append("\n**Existing Code** (please modify based on this):\n```javascript\n$existingCode\n```\n")
+                }
+                append("\nPlease generate complete module code and ensure code quality and security.")
             }
         }
     }
@@ -383,6 +572,13 @@ $existingCodeHint
             AppLanguage.CHINESE -> buildAiCodingPromptChinese(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
             AppLanguage.ENGLISH -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
             AppLanguage.ARABIC -> buildAiCodingPromptArabic(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.PORTUGUESE -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.SPANISH -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.FRENCH -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.GERMAN -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.RUSSIAN -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.JAPANESE -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
+            AppLanguage.KOREAN -> buildAiCodingPromptEnglish(rules, hasImageModel, templateName, templateDesc, templatePromptHint, colorScheme, styleName, styleDesc, styleKeywords, styleColors)
         }
     }
 
@@ -539,6 +735,13 @@ $existingCodeHint
             AppLanguage.CHINESE -> buildAiCodingPromptChinese(codingType, rules)
             AppLanguage.ENGLISH -> buildAiCodingPromptEnglish(codingType, rules)
             AppLanguage.ARABIC -> buildAiCodingPromptArabic(codingType, rules)
+            AppLanguage.PORTUGUESE -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.SPANISH -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.FRENCH -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.GERMAN -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.RUSSIAN -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.JAPANESE -> buildAiCodingPromptEnglish(codingType, rules)
+            AppLanguage.KOREAN -> buildAiCodingPromptEnglish(codingType, rules)
         }
     }
 

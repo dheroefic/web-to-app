@@ -127,9 +127,14 @@ enum class MarketInstallState {
 data class InstallProgress(
     val label: String,
     val current: Int,
-    val total: Int
+    val total: Int,
+    val downloadedBytes: Long = -1L,
+    val totalBytes: Long = -1L,
+    val speedBytesPerSec: Long = -1L
 ) {
     val fraction: Float get() = if (total > 0) current.toFloat() / total else 0f
+    val byteFraction: Float get() = if (totalBytes > 0) downloadedBytes.toFloat() / totalBytes else 0f
+    val hasByteProgress: Boolean get() = totalBytes > 0 && downloadedBytes >= 0
 }
 
 data class MarketModuleView(

@@ -703,6 +703,13 @@ private fun aboutAuthorByLine(): String = when (Strings.currentLanguage.value) {
     AppLanguage.CHINESE -> "开发者 Shiaho"
     AppLanguage.ENGLISH -> "by Shiaho"
     AppLanguage.ARABIC -> "بواسطة Shiaho"
+    AppLanguage.PORTUGUESE -> "by Shiaho"
+    AppLanguage.SPANISH -> "by Shiaho"
+    AppLanguage.FRENCH -> "by Shiaho"
+    AppLanguage.GERMAN -> "by Shiaho"
+    AppLanguage.RUSSIAN -> "by Shiaho"
+    AppLanguage.JAPANESE -> "by Shiaho"
+    AppLanguage.KOREAN -> "by Shiaho"
 }
 
 @Composable
@@ -710,6 +717,13 @@ private fun contactSectionTitle(): String = when (Strings.currentLanguage.value)
     AppLanguage.CHINESE -> "联系作者"
     AppLanguage.ENGLISH -> "Get in touch"
     AppLanguage.ARABIC -> "تواصل مع المؤلف"
+    AppLanguage.PORTUGUESE -> "Get in touch"
+    AppLanguage.SPANISH -> "Get in touch"
+    AppLanguage.FRENCH -> "Get in touch"
+    AppLanguage.GERMAN -> "Get in touch"
+    AppLanguage.RUSSIAN -> "Get in touch"
+    AppLanguage.JAPANESE -> "Get in touch"
+    AppLanguage.KOREAN -> "Get in touch"
 }
 
 @Composable
@@ -717,6 +731,13 @@ private fun authorLabel(): String = when (Strings.currentLanguage.value) {
     AppLanguage.CHINESE -> "其他项目"
     AppLanguage.ENGLISH -> "More projects"
     AppLanguage.ARABIC -> "مشاريع أخرى"
+    AppLanguage.PORTUGUESE -> "More projects"
+    AppLanguage.SPANISH -> "More projects"
+    AppLanguage.FRENCH -> "More projects"
+    AppLanguage.GERMAN -> "More projects"
+    AppLanguage.RUSSIAN -> "More projects"
+    AppLanguage.JAPANESE -> "More projects"
+    AppLanguage.KOREAN -> "More projects"
 }
 
 @Composable
@@ -724,6 +745,13 @@ private fun groupWord(): String = when (Strings.currentLanguage.value) {
     AppLanguage.CHINESE -> "群"
     AppLanguage.ENGLISH -> "Group"
     AppLanguage.ARABIC -> "مجموعة"
+    AppLanguage.PORTUGUESE -> "Group"
+    AppLanguage.SPANISH -> "Group"
+    AppLanguage.FRENCH -> "Group"
+    AppLanguage.GERMAN -> "Group"
+    AppLanguage.RUSSIAN -> "Group"
+    AppLanguage.JAPANESE -> "Group"
+    AppLanguage.KOREAN -> "Group"
 }
 
 @Composable
@@ -731,6 +759,13 @@ private fun qqCopiedToast(): String = when (Strings.currentLanguage.value) {
     AppLanguage.CHINESE -> "QQ 群号已复制"
     AppLanguage.ENGLISH -> "QQ group number copied"
     AppLanguage.ARABIC -> "تم نسخ رقم مجموعة QQ"
+    AppLanguage.PORTUGUESE -> "QQ group number copied"
+    AppLanguage.SPANISH -> "QQ group number copied"
+    AppLanguage.FRENCH -> "QQ group number copied"
+    AppLanguage.GERMAN -> "QQ group number copied"
+    AppLanguage.RUSSIAN -> "QQ group number copied"
+    AppLanguage.JAPANESE -> "QQ group number copied"
+    AppLanguage.KOREAN -> "QQ group number copied"
 }
 
 @Composable
@@ -738,4 +773,11 @@ private fun versionCopiedToast(): String = when (Strings.currentLanguage.value) 
     AppLanguage.CHINESE -> "版本号已复制"
     AppLanguage.ENGLISH -> "Version copied"
     AppLanguage.ARABIC -> "تم نسخ الإصدار"
+    AppLanguage.PORTUGUESE -> "Version copied"
+    AppLanguage.SPANISH -> "Version copied"
+    AppLanguage.FRENCH -> "Version copied"
+    AppLanguage.GERMAN -> "Version copied"
+    AppLanguage.RUSSIAN -> "Version copied"
+    AppLanguage.JAPANESE -> "Version copied"
+    AppLanguage.KOREAN -> "Version copied"
 }

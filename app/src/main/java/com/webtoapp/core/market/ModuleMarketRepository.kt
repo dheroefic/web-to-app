@@ -225,17 +225,38 @@ class ModuleMarketRepository private constructor(
         entry: ModuleMarketEntry,
         onProgress: (InstallProgress) -> Unit
     ): Result<ExtensionModule> {
-        onProgress(InstallProgress(Strings.moduleMarketInstalling, 1, 1))
         val fileManager = ExtensionFileManager(context)
-        val result = fileManager.installChromeExtensionFromStore(entry.storeId!!)
+        val result = fileManager.installChromeExtensionFromStore(entry.storeId!!) { dl ->
+            onProgress(
+                InstallProgress(
+                    label = dl.phase,
+                    current = 1,
+                    total = 1,
+                    downloadedBytes = dl.downloadedBytes,
+                    totalBytes = dl.totalBytes,
+                    speedBytesPerSec = dl.speedBytesPerSec
+                )
+            )
+        }
         return when (result) {
             is ExtensionFileManager.ImportResult.ChromeExtension -> {
                 val modules = result.parseResult.modules
                 if (modules.isEmpty()) {
                     Result.failure(IllegalStateException("No modules parsed from extension"))
                 } else {
+                    onProgress(InstallProgress(Strings.cwsDlIcon, 1, 1))
+                    val iconUrl = resolveIconUrl(entry)
+                    val localIcon = if (iconUrl != null) {
+                        fileManager.downloadIconForExtension(iconUrl, result.extractedDir)
+                    } else null
+                    onProgress(InstallProgress(Strings.cwsDlTags, 1, 1))
+                    val tags = CwsTags.fromName(entry.name).map { it.label }
                     modules.forEach { module ->
-                        extensionManager.addModule(module)
+                        val enriched = module.copy(
+                            storeIconPath = localIcon?.absolutePath ?: "",
+                            storeTags = tags
+                        )
+                        extensionManager.addModule(enriched)
                     }
                     Result.success(modules.first())
                 }

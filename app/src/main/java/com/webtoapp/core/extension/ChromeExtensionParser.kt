@@ -53,8 +53,13 @@ object ChromeExtensionParser {
         val path: String
     )
 
-    fun parseFromDirectory(extensionDir: File, overrideExtensionId: String? = null): ParseResult {
+    fun parseFromDirectory(
+        extensionDir: File,
+        overrideExtensionId: String? = null,
+        storeId: String? = null
+    ): ParseResult {
         val warnings = mutableListOf<String>()
+        val effectiveExtId = storeId?.takeIf { it.isNotBlank() }
 
         val manifestFile = extensionDir.resolve("manifest.json")
         if (!manifestFile.exists()) {
@@ -93,7 +98,7 @@ object ChromeExtensionParser {
                 val hasExtensionUi = popupPath.isNotBlank() || optionsPagePath.isNotBlank()
                 val hasBackgroundRuntime = backgroundScript.isNotBlank() || staticRuleResources.isNotEmpty()
 
-                if (hasExtensionUi || hasBackgroundRuntime) {
+                    if (hasExtensionUi || hasBackgroundRuntime) {
                     syntheticModules += ExtensionModule(
                         id = "${extensionId}_ui_0",
                         name = name,
@@ -107,7 +112,7 @@ object ChromeExtensionParser {
                         urlMatches = listOf(UrlMatchRule(pattern = "*")),
                         enabled = true,
                         sourceType = ModuleSourceType.CHROME_EXTENSION,
-                        chromeExtId = extensionId,
+                        chromeExtId = effectiveExtId ?: extensionId,
                         world = "ISOLATED",
                         backgroundScript = backgroundScript,
                         popupPath = popupPath,
@@ -237,7 +242,7 @@ object ChromeExtensionParser {
                     urlMatches = urlMatchRules,
                     enabled = true,
                     sourceType = ModuleSourceType.CHROME_EXTENSION,
-                    chromeExtId = extensionId,
+                    chromeExtId = effectiveExtId ?: extensionId,
                     world = world,
                     backgroundScript = if (i == 0) backgroundScript else "",
                     popupPath = if (i == 0) popupPath else "",
