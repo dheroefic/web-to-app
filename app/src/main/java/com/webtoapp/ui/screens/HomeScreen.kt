@@ -578,13 +578,6 @@ fun HomeScreen(
                         val scope = sharedScope
                         val previewSpec = previewSpecs[app.id] ?: AppPreviewSpec()
 
-                        StaggeredAnimatedItem(
-                            index = index,
-                            modifier = Modifier.animateItem(
-                                placementSpec = com.webtoapp.ui.design.WtaMotion.settleSpring()
-                            )
-                        ) {
-
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { value ->
                                 if (value == SwipeToDismissBoxValue.EndToStart) {
@@ -810,12 +803,8 @@ fun HomeScreen(
                                         }
                                     }
                                 }
-                            } else null,
-                            modifier = Modifier.animateItem(
-                                placementSpec = com.webtoapp.ui.design.WtaMotion.settleSpring()
-                            )
+                            } else null
                         )
-                        }
                         }
                     }
 
