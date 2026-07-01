@@ -290,7 +290,7 @@ data class WebViewConfig(
     val followSystemDarkMode: Boolean = false,
     val longPressMenuEnabled: Boolean = false,
     val longPressMenuStyle: LongPressMenuStyle = LongPressMenuStyle.DISABLED,
-    val adBlockToggleEnabled: Boolean = false,
+
     val popupBlockerEnabled: Boolean = false,
     val popupBlockerToggleEnabled: Boolean = false,
 

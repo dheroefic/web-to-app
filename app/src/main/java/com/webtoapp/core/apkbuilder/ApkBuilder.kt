@@ -3079,7 +3079,7 @@ private fun WebApp.buildActivationBlock(): ActivationBlock = ActivationBlock(
 )
 
 private fun WebApp.buildAdBlockBlock(): AdBlockBlock = AdBlockBlock(
-    enabled = adBlockEnabled,
+    enabled = adBlockSubscriptions.isNotEmpty() || adBlockRules.isNotEmpty(),
     rules = adBlockRules,
     subscriptions = adBlockSubscriptions
 )
@@ -3175,7 +3175,7 @@ private fun com.webtoapp.data.model.WebViewConfig.toWebViewBlock(context: androi
         injectScripts = resolvedInjectScripts,
         longPressMenuEnabled = longPressMenuEnabled,
         longPressMenuStyle = longPressMenuStyle.name,
-        adBlockToggleEnabled = adBlockToggleEnabled,
+
         popupBlockerEnabled = popupBlockerEnabled,
         popupBlockerToggleEnabled = popupBlockerToggleEnabled,
         openExternalLinks = openExternalLinks,

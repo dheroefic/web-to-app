@@ -12,6 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.webtoapp.R
 import com.webtoapp.core.i18n.Strings
@@ -426,142 +431,281 @@ private fun LongPressMenuStylePreview(
 @Composable
 fun AdBlockCard(
     editState: EditState,
-    onEnabledChange: (Boolean) -> Unit,
     onRulesChange: (List<String>) -> Unit,
-    onSubscriptionsChange: (List<String>) -> Unit,
-    onToggleEnabledChange: (Boolean) -> Unit = {}
+    onSubscriptionsChange: (List<String>) -> Unit
 ) {
     var newRule by remember { mutableStateOf("") }
-    val enabled = editState.adBlockEnabled
+    var showSubscriptionDialog by remember { mutableStateOf(false) }
     val rules = editState.adBlockRules
     val rulesCount = rules.size
     val subscriptions = editState.adBlockSubscriptions
-    val popularSources = remember { com.webtoapp.core.adblock.AdBlocker.getPopularHostsSources() }
+    val adBlocker = remember { com.webtoapp.WebToAppApplication.adBlock }
+    val allSources = remember { com.webtoapp.core.adblock.AdBlocker.getPopularHostsSources() }
+    val downloadedSources = remember(allSources, Unit) {
+        allSources.filter { adBlocker.isHostsSourceDownloaded(it.url) }
+    }
+    val validSubscriptions = subscriptions.filter { url -> downloadedSources.any { it.url == url } }
+    val active = validSubscriptions.isNotEmpty() || rules.isNotEmpty()
 
     WtaSettingCard(
         contentPadding = PaddingValues(WtaSpacing.Large)
     ) {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(WtaSpacing.Medium)
+        ) {
             AdBlockHeader(
-                enabled = enabled,
-                rulesCount = rulesCount,
-                subscriptionsCount = subscriptions.size,
-                onToggle = onEnabledChange
+                active = active,
+                subscriptionsCount = validSubscriptions.size,
+                rulesCount = rulesCount
             )
 
-            AnimatedVisibility(
-                visible = enabled,
-                enter = CardExpandTransition,
-                exit = CardCollapseTransition
-            ) {
-                Column(
-                    modifier = Modifier.padding(top = WtaSpacing.Medium),
-                    verticalArrangement = Arrangement.spacedBy(WtaSpacing.Medium)
-                ) {
-                    SubscriptionSourcesSection(
-                        popularSources = popularSources,
-                        subscriptions = subscriptions,
-                        onSubscriptionsChange = onSubscriptionsChange
-                    )
+            WtaStatusBanner(
+                message = Strings.adBlockSubscriptionsDesc,
+                tone = WtaStatusTone.Info
+            )
 
-                    WtaSectionDivider()
+            if (downloadedSources.isEmpty()) {
+                WtaStatusBanner(
+                    message = Strings.adBlockNoDownloadedSources,
+                    tone = WtaStatusTone.Warning
+                )
+            }
 
-                    CustomRulesSection(
-                        rules = rules,
-                        rulesCount = rulesCount,
-                        newRule = newRule,
-                        onNewRuleChange = { newRule = it },
-                        onRulesChange = onRulesChange
-                    )
+            WtaButton(
+                onClick = { showSubscriptionDialog = true },
+                text = if (validSubscriptions.isEmpty()) Strings.adBlockSelectSubscriptions
+                       else Strings.adBlockManageSubscriptions.format(validSubscriptions.size),
+                leadingIcon = Icons.Outlined.FilterList,
+                variant = WtaButtonVariant.Tonal,
+                size = WtaButtonSize.Medium,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = downloadedSources.isNotEmpty()
+            )
 
-                    WtaSectionDivider()
-
-                    RuntimeControlsSection(
-                        toggleEnabled = editState.webViewConfig.adBlockToggleEnabled,
-                        onToggleEnabledChange = onToggleEnabledChange
-                    )
+            if (validSubscriptions.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(WtaSpacing.Tiny)) {
+                    validSubscriptions.forEach { url ->
+                        val source = downloadedSources.firstOrNull { it.url == url }
+                        WtaSettingRow(
+                            title = source?.name ?: url,
+                            subtitle = source?.description,
+                            icon = Icons.Outlined.Shield
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    onSubscriptionsChange(subscriptions.filter { it != url })
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = Strings.delete,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        if (url != validSubscriptions.last()) {
+                            WtaSectionDivider()
+                        }
+                    }
                 }
             }
+
+            WtaSectionDivider()
+
+            CustomRulesSection(
+                rules = rules,
+                rulesCount = rulesCount,
+                newRule = newRule,
+                onNewRuleChange = { newRule = it },
+                onRulesChange = onRulesChange
+            )
         }
+    }
+
+    if (showSubscriptionDialog) {
+        AdBlockSubscriptionSelectorDialog(
+            allSources = downloadedSources,
+            selectedUrls = subscriptions.toSet(),
+            onSelectionChange = { newSelection ->
+                onSubscriptionsChange(newSelection.toList())
+            },
+            onDismiss = { showSubscriptionDialog = false }
+        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SubscriptionSourcesSection(
-    popularSources: List<com.webtoapp.core.adblock.HostsSource>,
-    subscriptions: List<String>,
-    onSubscriptionsChange: (List<String>) -> Unit
+fun AdBlockSubscriptionSelectorDialog(
+    allSources: List<com.webtoapp.core.adblock.HostsSource>,
+    selectedUrls: Set<String>,
+    onSelectionChange: (Set<String>) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    var importingUrl by remember { mutableStateOf<String?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    Column(verticalArrangement = Arrangement.spacedBy(WtaSpacing.Small)) {
-        Text(
-            text = Strings.adBlockSubscriptionsLabel,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        WtaStatusBanner(
-            message = Strings.adBlockSubscriptionsDesc,
-            tone = WtaStatusTone.Info
-        )
+    val filteredSources = allSources.filter { source ->
+        searchQuery.isBlank() ||
+            source.name.contains(searchQuery, ignoreCase = true) ||
+            source.description.contains(searchQuery, ignoreCase = true)
+    }
 
-        popularSources.chunked(2).forEach { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(WtaSpacing.Tiny)
-            ) {
-                row.forEach { source ->
-                    val isSelected = subscriptions.contains(source.url)
-                    WtaChip(
-                        selected = isSelected,
-                        onClick = {
-                            val newSubs = if (isSelected) {
-                                subscriptions.filter { it != source.url }
-                            } else {
-                                subscriptions + source.url
-                            }
-                            onSubscriptionsChange(newSubs)
-                            if (!isSelected) {
-                                scope.launch {
-                                    importingUrl = source.url
-                                    try {
-                                        com.webtoapp.WebToAppApplication.adBlock
-                                            .importHostsFromUrl(source.url, context)
-                                    } catch (_: Exception) {
-                                    } finally {
-                                        importingUrl = null
-                                    }
+    val allFilteredSelected = filteredSources.isNotEmpty() &&
+        filteredSources.all { it.url in selectedUrls }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        WtaCard(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.85f),
+            tone = WtaCardTone.Surface,
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(WtaRadius.Card)
+        ) {
+            Column {
+                TopAppBar(
+                    title = { Text(Strings.adBlockSelectSubscriptions) },
+                    navigationIcon = {
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, Strings.btnCancel)
+                        }
+                    },
+                    actions = {
+                        TextButton(onClick = onDismiss) {
+                            Text(Strings.doneWithCount.format(selectedUrls.size))
+                        }
+                    }
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    PremiumTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text(Strings.searchModulesHint) },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        trailingIcon = {
+                            if (searchQuery.isNotBlank()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Clear, Strings.clear)
                                 }
                             }
                         },
-                        label = source.name,
-                        modifier = Modifier.weight(1f),
-                        showSelectedCheck = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(WtaRadius.Control)
                     )
-                }
-                repeat(2 - row.size) {
-                    Spacer(Modifier.weight(1f))
-                }
-            }
-        }
 
-        importingUrl?.let { url ->
-            val sourceName = popularSources.firstOrNull { it.url == url }?.name ?: url
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(WtaSpacing.Small)
-            ) {
-                androidx.compose.material3.CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = sourceName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = {
+                                if (allFilteredSelected) {
+                                    onSelectionChange(selectedUrls - filteredSources.map { it.url }.toSet())
+                                } else {
+                                    onSelectionChange(selectedUrls + filteredSources.map { it.url })
+                                }
+                            }
+                        ) {
+                            Text(
+                                if (allFilteredSelected) Strings.clearAll else Strings.selectAll
+                            )
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.weight(weight = 1f, fill = true),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(filteredSources, key = { it.url }) { source ->
+                            val isSelected = source.url in selectedUrls
+                            WtaCard(
+                                onClick = {
+                                    onSelectionChange(
+                                        if (isSelected) selectedUrls - source.url
+                                        else selectedUrls + source.url
+                                    )
+                                },
+                                tone = if (isSelected) WtaCardTone.Highlighted else WtaCardTone.Surface,
+                                shape = RoundedCornerShape(WtaRadius.Control),
+                                contentPadding = PaddingValues(0.dp),
+                                border = if (isSelected) {
+                                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                } else null
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = null
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            source.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        if (source.description.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                source.description,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (filteredSources.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Icon(
+                                            Icons.Outlined.SearchOff,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(48.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            Strings.noMatchingModules,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        item { Spacer(modifier = Modifier.height(16.dp)) }
+                    }
+                }
             }
         }
     }
@@ -664,71 +808,54 @@ private fun CustomRulesSection(
 }
 
 @Composable
-private fun RuntimeControlsSection(
-    toggleEnabled: Boolean,
-    onToggleEnabledChange: (Boolean) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(WtaSpacing.Small)) {
-        Text(
-            text = Strings.adBlockRuntimeControls,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        WtaToggleRow(
-            title = Strings.adBlockToggleEnabled,
-            subtitle = Strings.adBlockToggleDescription,
-            checked = toggleEnabled,
-            onCheckedChange = onToggleEnabledChange
-        )
-    }
-}
-
-@Composable
 private fun AdBlockHeader(
-    enabled: Boolean,
-    rulesCount: Int,
+    active: Boolean,
     subscriptionsCount: Int,
-    onToggle: (Boolean) -> Unit
+    rulesCount: Int
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .size(WtaSize.IconPlate)
+                .clip(RoundedCornerShape(WtaRadius.IconPlate))
+                .background(
+                    if (active) MaterialTheme.colorScheme.primary.copy(alpha = WtaAlpha.MutedContainer)
+                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = WtaAlpha.Medium)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(WtaSize.IconPlate)
-                    .clip(RoundedCornerShape(WtaRadius.IconPlate))
-                    .background(
-                        if (enabled) MaterialTheme.colorScheme.primary.copy(alpha = WtaAlpha.MutedContainer)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = WtaAlpha.Medium)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Outlined.Shield,
-                    contentDescription = null,
-                    modifier = Modifier.size(WtaSize.Icon),
-                    tint = if (enabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Spacer(Modifier.width(WtaSpacing.IconTextGap))
+            Icon(
+                Icons.Outlined.Shield,
+                contentDescription = null,
+                modifier = Modifier.size(WtaSize.Icon),
+                tint = if (active) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(Modifier.width(WtaSpacing.IconTextGap))
+        Column {
             Text(
                 text = Strings.adBlocking,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            val subtitleParts = mutableListOf<String>()
+            if (subscriptionsCount > 0) {
+                subtitleParts.add(Strings.adBlockSubscriptionsCount.format(subscriptionsCount))
+            }
+            if (rulesCount > 0) {
+                subtitleParts.add(Strings.rulesCount.format(rulesCount))
+            }
+            Text(
+                text = if (subtitleParts.isEmpty()) Strings.adBlockInactive else subtitleParts.joinToString(" · "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-        WtaSwitch(
-            checked = enabled,
-            onCheckedChange = onToggle
-        )
     }
 }
 

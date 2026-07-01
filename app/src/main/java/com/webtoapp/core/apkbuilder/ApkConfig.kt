@@ -120,7 +120,7 @@ data class ApkConfig(
     val injectScripts: List<com.webtoapp.data.model.UserScript> get() = webView.injectScripts
     val longPressMenuEnabled: Boolean get() = webView.longPressMenuEnabled
     val longPressMenuStyle: String get() = webView.longPressMenuStyle
-    val adBlockToggleEnabled: Boolean get() = webView.adBlockToggleEnabled
+
     val popupBlockerEnabled: Boolean get() = webView.popupBlockerEnabled
     val popupBlockerToggleEnabled: Boolean get() = webView.popupBlockerToggleEnabled
     val openExternalLinks: Boolean get() = webView.openExternalLinks
@@ -477,7 +477,7 @@ data class WebViewBlock(
     val injectScripts: List<com.webtoapp.data.model.UserScript> = emptyList(),
     val longPressMenuEnabled: Boolean = false,
     val longPressMenuStyle: String = "DISABLED",
-    val adBlockToggleEnabled: Boolean = false,
+
     val popupBlockerEnabled: Boolean = false,
     val popupBlockerToggleEnabled: Boolean = false,
     val openExternalLinks: Boolean = false,

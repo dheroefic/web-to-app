@@ -1134,8 +1134,7 @@ data class WebViewShellConfig(
     @SerializedName("longPressMenuStyle")
     val longPressMenuStyle: String = "DISABLED",
 
-    @SerializedName("adBlockToggleEnabled")
-    val adBlockToggleEnabled: Boolean = false,
+
 
     @SerializedName("popupBlockerEnabled")
     val popupBlockerEnabled: Boolean = false,
